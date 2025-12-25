@@ -3,12 +3,17 @@ import axios from 'axios';
 import './ChatAgentBuilder.css';
 
 const AVAILABLE_MODELS = [
-    { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (Fastest/Smartest)' },
-    { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (Reliable)' },
+    { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (Fast / Smart)' },
+    { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (Reliable / Logic)' },
     { id: 'deepseek/deepseek-r1-distill-llama-70b:free', name: 'DeepSeek R1 Distill (Reasoning)' },
     { id: 'microsoft/phi-4:free', name: 'Phi-4 (Strong Small Model)' },
-    { id: 'qwen/qwen-2.5-coder-32b-instruct:free', name: 'Qwen 2.5 Coder (Code Expert)' },
-    { id: 'nvidia/llama-3.1-nemotron-70b-instruct:free', name: 'Nvidia Nemotron 70B' }
+    { id: 'qwen/qwen-2.5-coder-32b-instruct:free', name: 'Qwen 2.5 Coder (Coding Expert)' },
+    { id: 'nvidia/llama-3.1-nemotron-70b-instruct:free', name: 'Nvidia Nemotron 70B (Instruction)' },
+    { id: 'mistralai/mistral-small-24b-instruct-2501:free', name: 'Mistral Small 3 (Balanced)' },
+    { id: 'meta-llama/llama-3.2-11b-vision-instruct:free', name: 'Llama 3.2 11B (Fast)' },
+    { id: 'huggingfaceh4/zephyr-7b-beta:free', name: 'Zephyr 7B Beta (Chat / Roleplay)' },
+    { id: 'liquid/lfm-40b:free', name: 'Liquid LFM 40B (Novel Architecture)' },
+    { id: 'sophosympatheia/rogue-rose-103b-v0.2:free', name: 'Rogue Rose 103B (Creative)' }
 ];
 
 function ChatAgentBuilder({ onFrameworkGenerated, apiUrl }) {
@@ -68,9 +73,12 @@ What would you like to build today?`
             }
         } catch (err) {
             console.error('Chat error:', err);
-            // Demo mode fallback
+            // Demo mode fallback with explicit notification
             const demoResponse = generateDemoResponse(input);
-            setMessages(prev => [...prev, { role: 'assistant', content: demoResponse.content }]);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `[OFFLINE MODE - API ERROR: ${err.message || 'Unknown'}]\n\n` + demoResponse.content
+            }]);
             if (demoResponse.framework) {
                 setGeneratedFramework(demoResponse.framework);
             }
@@ -256,9 +264,14 @@ It's a solid starting point for many agentic workflows.`,
             setGeneratedFramework(response.data.framework);
         } catch (err) {
             // Demo fallback
+            console.error('Quick Gen error:', err);
             const demo = generateDemoResponse(input || 'simple agent chain');
             if (demo.framework) {
                 setGeneratedFramework(demo.framework);
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `[OFFLINE MODE - API ERROR: ${err.message}]\n\n` + demo.content
+                }]);
             }
         } finally {
             setLoading(false);
