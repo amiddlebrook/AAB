@@ -8,7 +8,7 @@ import { nodeTypeRoutes } from './routes/node-types';
 export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
-  OPENROUTER_API_KEY: string;
+  AAB_OPENROUTER_API_KEY: string;
   ENVIRONMENT: string;
 }
 
@@ -28,8 +28,8 @@ app.use('*', cors({
 
 // Health check
 app.get('/api/health', (c) => {
-  return c.json({ 
-    status: 'ok', 
+  return c.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     environment: c.env.ENVIRONMENT
   });

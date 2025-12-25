@@ -60,9 +60,9 @@ chatRoutes.post('/', async (c) => {
     try {
         const response = await callOpenRouter(
             fullMessages,
-            c.env.OPENROUTER_API_KEY,
+            c.env.AAB_OPENROUTER_API_KEY,
             {
-                model: 'anthropic/claude-3.5-sonnet',
+                model: 'meta-llama/llama-3.3-70b-instruct:free',
                 temperature: 0.7,
                 maxTokens: 4096
             }
@@ -123,9 +123,9 @@ Use appropriate node types and connect them logically.`;
                 { role: 'system', content: SYSTEM_PROMPT },
                 { role: 'user', content: prompt }
             ],
-            c.env.OPENROUTER_API_KEY,
+            c.env.AAB_OPENROUTER_API_KEY,
             {
-                model: 'anthropic/claude-3.5-sonnet',
+                model: 'meta-llama/llama-3.3-70b-instruct:free',
                 temperature: 0.5,
                 maxTokens: 2048
             }

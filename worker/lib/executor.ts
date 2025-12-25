@@ -98,7 +98,7 @@ async function executeNode(
 
     // Agent node - call LLM
     if (nodeType === 'agent' || nodeType === 'default') {
-        const model = config.model || 'anthropic/claude-3.5-sonnet';
+        const model = config.model || 'meta-llama/llama-3.3-70b-instruct:free';
         const temperature = config.temperature ?? 0.7;
         const systemPrompt = config.systemPrompt || 'You are a helpful assistant.';
         const maxTokens = config.maxTokens || 1024;

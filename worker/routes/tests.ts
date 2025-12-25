@@ -37,7 +37,7 @@ testRoutes.post('/:frameworkId/run', async (c) => {
             edges: edges.results
         },
         body.testInput || '',
-        c.env.OPENROUTER_API_KEY,
+        c.env.AAB_OPENROUTER_API_KEY,
         c.env.DB
     );
     const endTime = Date.now();

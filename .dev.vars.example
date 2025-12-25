@@ -1,0 +1,5 @@
+# AAB Environment Variables
+# Copy this to .dev.vars and add your real API key
+
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+ENVIRONMENT=development

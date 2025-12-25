@@ -21,15 +21,15 @@ export interface OpenRouterResponse {
     };
 }
 
-// Model pricing (per 1M tokens)
+// Free model pricing (all free - $0)
 const MODEL_PRICING: Record<string, { input: number; output: number }> = {
-    'anthropic/claude-3.5-sonnet': { input: 3, output: 15 },
-    'anthropic/claude-3-haiku': { input: 0.25, output: 1.25 },
-    'openai/gpt-4o': { input: 2.5, output: 10 },
-    'openai/gpt-4o-mini': { input: 0.15, output: 0.6 },
-    'google/gemini-flash-1.5': { input: 0.075, output: 0.3 },
-    'meta-llama/llama-3.1-70b-instruct': { input: 0.52, output: 0.75 },
-    'mistralai/mistral-large': { input: 2, output: 6 },
+    'meta-llama/llama-3.3-70b-instruct:free': { input: 0, output: 0 },
+    'google/gemini-2.5-pro-exp-03-25:free': { input: 0, output: 0 },
+    'deepseek/deepseek-chat-v3-0324:free': { input: 0, output: 0 },
+    'deepseek/deepseek-r1-zero:free': { input: 0, output: 0 },
+    'mistralai/mistral-small-3.1-24b-instruct:free': { input: 0, output: 0 },
+    'nvidia/llama-3.1-nemotron-nano-8b-v1:free': { input: 0, output: 0 },
+    'qwen/qwen3-coder-480b-a35b:free': { input: 0, output: 0 },
 };
 
 export async function callOpenRouter(
@@ -37,7 +37,7 @@ export async function callOpenRouter(
     apiKey: string,
     options: OpenRouterOptions = {}
 ): Promise<OpenRouterResponse> {
-    const model = options.model || 'anthropic/claude-3.5-sonnet';
+    const model = options.model || 'meta-llama/llama-3.3-70b-instruct:free';
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
