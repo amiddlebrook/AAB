@@ -6,7 +6,7 @@ function ChatAgentBuilder({ onFrameworkGenerated, apiUrl }) {
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
-            content: `👋 Welcome to the AAB Chat Builder!
+            content: `Welcome to the AAB Chat Builder!
 
 I can help you create agent frameworks through natural conversation. Just describe what you want to build:
 
@@ -176,7 +176,7 @@ Or try one of these examples:
             setGeneratedFramework(null);
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: '✅ Framework added! Switch to the Visual Editor tab to customize it, or Test Runner to try it out.'
+                content: 'Framework added successfully. Switch to Visual Editor to customize or Test Runner to execute.'
             }]);
         }
     };
@@ -184,7 +184,7 @@ Or try one of these examples:
     return (
         <div className="chat-builder">
             <div className="chat-header">
-                <h2>💬 Chat Agent Builder</h2>
+                <h2>Chat Agent Builder</h2>
                 <p>Describe what you want to build in natural language</p>
             </div>
 
@@ -192,7 +192,7 @@ Or try one of these examples:
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`message ${msg.role}`}>
                         <div className="message-avatar">
-                            {msg.role === 'user' ? '👤' : '🤖'}
+                            {msg.role === 'user' ? 'USER' : 'AI'}
                         </div>
                         <div className="message-content">
                             {msg.content.split('\n').map((line, i) => (
@@ -203,7 +203,7 @@ Or try one of these examples:
                 ))}
                 {loading && (
                     <div className="message assistant">
-                        <div className="message-avatar">🤖</div>
+                        <div className="message-avatar">AI</div>
                         <div className="message-content">
                             <div className="typing-indicator">
                                 <span></span><span></span><span></span>
@@ -219,11 +219,11 @@ Or try one of these examples:
                     <h3>Generated Framework: {generatedFramework.name}</h3>
                     <p>{generatedFramework.description}</p>
                     <div className="preview-stats">
-                        <span>🔵 {generatedFramework.nodes?.length || 0} Nodes</span>
-                        <span>➡️ {generatedFramework.edges?.length || 0} Edges</span>
+                        <span>{generatedFramework.nodes?.length || 0} Nodes</span>
+                        <span>{generatedFramework.edges?.length || 0} Edges</span>
                     </div>
                     <button className="use-framework-btn" onClick={useFramework}>
-                        ✨ Use This Framework
+                        Use This Framework
                     </button>
                 </div>
             )}
@@ -243,10 +243,10 @@ Or try one of these examples:
                 />
                 <div className="chat-actions">
                     <button onClick={sendMessage} disabled={loading || !input.trim()}>
-                        Send
+                        Send Request
                     </button>
                     <button onClick={handleQuickGenerate} disabled={loading} className="quick-gen">
-                        ⚡ Quick Generate
+                        Quick Generate
                     </button>
                 </div>
             </div>

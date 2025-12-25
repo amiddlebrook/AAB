@@ -342,6 +342,7 @@ function App() {
           <TestRunner
             framework={selectedFramework}
             apiUrl={API_URL}
+            onUpdate={updateFramework}
           />
         )}
         {activeTab === 'dashboard' && (

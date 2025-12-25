@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './TestRunner.css';
 
-function TestRunner({ framework, apiUrl }) {
+function TestRunner({ framework, apiUrl, onUpdate }) {
   const [testInput, setTestInput] = useState('Sample test input for the framework');
   const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -49,12 +49,26 @@ function TestRunner({ framework, apiUrl }) {
       // Simulate streaming execution with demo mode fallback
       const result = await simulateStreamingExecution();
       setLatestResult(result);
-      setTestResults([result, ...testResults]);
+      const newResults = [result, ...testResults];
+      setTestResults(newResults);
+
+      // Update Framework Metrics in Parent
+      if (onUpdate) {
+        const currentMetrics = framework.metrics || { totalRuns: 0, successRate: 0, avgLatency: 0 };
+        const totalRuns = currentMetrics.totalRuns + 1;
+        const newSuccessRate = ((currentMetrics.successRate * currentMetrics.totalRuns) + (result.success ? 1 : 0)) / totalRuns;
+        const newAvgLatency = ((currentMetrics.avgLatency * currentMetrics.totalRuns) + result.latency) / totalRuns;
+
+        onUpdate(framework.id, {
+          metrics: {
+            totalRuns,
+            successRate: newSuccessRate,
+            avgLatency: newAvgLatency
+          }
+        });
+      }
     } catch (error) {
       console.error('Error running test:', error);
-      const demoResult = simulateExecution();
-      setLatestResult(demoResult);
-      setTestResults([demoResult, ...testResults]);
     } finally {
       setLoading(false);
     }
