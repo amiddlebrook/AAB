@@ -3,10 +3,12 @@ import axios from 'axios';
 import './ChatAgentBuilder.css';
 
 const AVAILABLE_MODELS = [
-    { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (Free)' },
-    { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (Free)' },
-    { id: 'microsoft/phi-4:free', name: 'Phi-4 (Free)' },
-    { id: 'qwen/qwen-2.5-coder-32b-instruct:free', name: 'Qwen 2.5 Coder (Free)' }
+    { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (Fastest/Smartest)' },
+    { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (Reliable)' },
+    { id: 'deepseek/deepseek-r1-distill-llama-70b:free', name: 'DeepSeek R1 Distill (Reasoning)' },
+    { id: 'microsoft/phi-4:free', name: 'Phi-4 (Strong Small Model)' },
+    { id: 'qwen/qwen-2.5-coder-32b-instruct:free', name: 'Qwen 2.5 Coder (Code Expert)' },
+    { id: 'nvidia/llama-3.1-nemotron-70b-instruct:free', name: 'Nvidia Nemotron 70B' }
 ];
 
 function ChatAgentBuilder({ onFrameworkGenerated, apiUrl }) {
