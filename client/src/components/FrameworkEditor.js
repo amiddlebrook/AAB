@@ -156,7 +156,7 @@ function FrameworkEditor({ framework, onUpdate }) {
   const addNode = (type) => {
     const config = NODE_TYPES_CONFIG[type];
     const nodeConfig = type === 'agent' ? {
-      model: 'anthropic/claude-3.5-sonnet',
+      model: 'meta-llama/llama-3.3-70b-instruct:free',
       temperature: 0.7,
       maxTokens: 2048
     } : {};
@@ -297,7 +297,7 @@ function FrameworkEditor({ framework, onUpdate }) {
               <>
                 <label>Model</label>
                 <select
-                  value={selectedNode.data.config.model || 'anthropic/claude-3.5-sonnet'}
+                  value={selectedNode.data.config.model || 'meta-llama/llama-3.3-70b-instruct:free'}
                   onChange={(e) => updateNode(selectedNode.id, {
                     config: { ...selectedNode.data.config, model: e.target.value }
                   })}
@@ -335,7 +335,21 @@ function FrameworkEditor({ framework, onUpdate }) {
 
             {selectedNode.type === 'tool' && (
               <>
-                <label>API Endpoint</label>
+                <label>Tool Type</label>
+                <select
+                  value={selectedNode.data.config?.toolType || 'http'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, toolType: e.target.value }
+                  })}
+                >
+                  <option value="http">HTTP Request</option>
+                  <option value="calculator">Calculator</option>
+                  <option value="search">Web Search</option>
+                  <option value="code">Code Execution</option>
+                  <option value="database">Database Query</option>
+                </select>
+
+                <label>API Endpoint / Query</label>
                 <input
                   type="text"
                   value={selectedNode.data.config?.endpoint || ''}
@@ -344,6 +358,308 @@ function FrameworkEditor({ framework, onUpdate }) {
                   })}
                   placeholder="https://api.example.com/..."
                 />
+
+                <label>HTTP Method</label>
+                <select
+                  value={selectedNode.data.config?.method || 'GET'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, method: e.target.value }
+                  })}
+                >
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+
+                <label>Headers (JSON)</label>
+                <textarea
+                  value={selectedNode.data.config?.headers || '{}'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, headers: e.target.value }
+                  })}
+                  placeholder='{"Authorization": "Bearer ..."}'
+                  rows={2}
+                />
+              </>
+            )}
+
+            {selectedNode.type === 'rag' && (
+              <>
+                <label>Vector Store</label>
+                <select
+                  value={selectedNode.data.config?.vectorStore || 'memory'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, vectorStore: e.target.value }
+                  })}
+                >
+                  <option value="memory">In-Memory (D1)</option>
+                  <option value="pinecone">Pinecone</option>
+                  <option value="weaviate">Weaviate</option>
+                  <option value="qdrant">Qdrant</option>
+                  <option value="chroma">ChromaDB</option>
+                </select>
+
+                <label>Embedding Model</label>
+                <select
+                  value={selectedNode.data.config?.embeddingModel || 'text-embedding-3-small'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, embeddingModel: e.target.value }
+                  })}
+                >
+                  <option value="text-embedding-3-small">OpenAI Small (1536)</option>
+                  <option value="text-embedding-3-large">OpenAI Large (3072)</option>
+                  <option value="bge-large-en">BGE Large</option>
+                  <option value="cf-bge-small-en">Cloudflare BGE Small</option>
+                </select>
+
+                <label>Top K Results: {selectedNode.data.config?.topK || 3}</label>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={selectedNode.data.config?.topK || 3}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, topK: parseInt(e.target.value) }
+                  })}
+                />
+
+                <label>Similarity Threshold: {selectedNode.data.config?.threshold || 0.7}</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={selectedNode.data.config?.threshold || 0.7}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, threshold: parseFloat(e.target.value) }
+                  })}
+                />
+
+                <label>Chunk Size</label>
+                <input
+                  type="number"
+                  value={selectedNode.data.config?.chunkSize || 512}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, chunkSize: parseInt(e.target.value) }
+                  })}
+                  placeholder="512"
+                />
+              </>
+            )}
+
+            {selectedNode.type === 'router' && (
+              <>
+                <label>Routing Strategy</label>
+                <select
+                  value={selectedNode.data.config?.strategy || 'llm'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, strategy: e.target.value }
+                  })}
+                >
+                  <option value="llm">LLM-Based (Semantic)</option>
+                  <option value="keyword">Keyword Matching</option>
+                  <option value="regex">Regex Rules</option>
+                  <option value="similarity">Similarity Score</option>
+                  <option value="random">Random (Load Balance)</option>
+                </select>
+
+                <label>Routes (JSON Array)</label>
+                <textarea
+                  value={selectedNode.data.config?.routes || '[\n  {"name": "technical", "condition": "code or programming"},\n  {"name": "creative", "condition": "story or art"}\n]'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, routes: e.target.value }
+                  })}
+                  placeholder='[{"name": "route1", "condition": "..."}]'
+                  rows={4}
+                />
+
+                <label>Default Route</label>
+                <input
+                  type="text"
+                  value={selectedNode.data.config?.defaultRoute || ''}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, defaultRoute: e.target.value }
+                  })}
+                  placeholder="fallback"
+                />
+              </>
+            )}
+
+            {selectedNode.type === 'memory' && (
+              <>
+                <label>Memory Type</label>
+                <select
+                  value={selectedNode.data.config?.memoryType || 'conversation'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, memoryType: e.target.value }
+                  })}
+                >
+                  <option value="conversation">Conversation Buffer</option>
+                  <option value="summary">Summary Memory</option>
+                  <option value="kv">Key-Value Store (KV)</option>
+                  <option value="vector">Vector Memory</option>
+                  <option value="entity">Entity Memory</option>
+                </select>
+
+                <label>Storage</label>
+                <select
+                  value={selectedNode.data.config?.storage || 'session'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, storage: e.target.value }
+                  })}
+                >
+                  <option value="session">Session (Ephemeral)</option>
+                  <option value="kv">Cloudflare KV</option>
+                  <option value="d1">Cloudflare D1</option>
+                  <option value="durable">Durable Object</option>
+                </select>
+
+                <label>Max Messages: {selectedNode.data.config?.maxMessages || 20}</label>
+                <input
+                  type="range"
+                  min="5"
+                  max="100"
+                  value={selectedNode.data.config?.maxMessages || 20}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, maxMessages: parseInt(e.target.value) }
+                  })}
+                />
+
+                <label>Memory Key</label>
+                <input
+                  type="text"
+                  value={selectedNode.data.config?.memoryKey || ''}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, memoryKey: e.target.value }
+                  })}
+                  placeholder="user_session_123"
+                />
+              </>
+            )}
+
+            {selectedNode.type === 'processor' && (
+              <>
+                <label>Processor Type</label>
+                <select
+                  value={selectedNode.data.config?.processorType || 'javascript'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, processorType: e.target.value }
+                  })}
+                >
+                  <option value="javascript">JavaScript Code</option>
+                  <option value="json">JSON Transform</option>
+                  <option value="template">Template String</option>
+                  <option value="regex">Regex Extract</option>
+                  <option value="filter">Filter/Validate</option>
+                </select>
+
+                <label>Code / Transform</label>
+                <textarea
+                  value={selectedNode.data.config?.code || 'return input;'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, code: e.target.value }
+                  })}
+                  placeholder="// JavaScript code&#10;return input.toUpperCase();"
+                  rows={5}
+                  style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                />
+
+                <label>Output Format</label>
+                <select
+                  value={selectedNode.data.config?.outputFormat || 'string'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, outputFormat: e.target.value }
+                  })}
+                >
+                  <option value="string">String</option>
+                  <option value="json">JSON Object</option>
+                  <option value="array">Array</option>
+                  <option value="number">Number</option>
+                </select>
+              </>
+            )}
+
+            {selectedNode.type === 'parallel' && (
+              <>
+                <label>Parallel Strategy</label>
+                <select
+                  value={selectedNode.data.config?.strategy || 'all'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, strategy: e.target.value }
+                  })}
+                >
+                  <option value="all">Wait for All</option>
+                  <option value="race">First Response Wins</option>
+                  <option value="any">Any N Responses</option>
+                  <option value="timeout">Timeout Fallback</option>
+                </select>
+
+                <label>Timeout (ms): {selectedNode.data.config?.timeout || 30000}</label>
+                <input
+                  type="range"
+                  min="1000"
+                  max="120000"
+                  step="1000"
+                  value={selectedNode.data.config?.timeout || 30000}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, timeout: parseInt(e.target.value) }
+                  })}
+                />
+
+                <label>Max Concurrent</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={selectedNode.data.config?.maxConcurrent || 5}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, maxConcurrent: parseInt(e.target.value) }
+                  })}
+                />
+              </>
+            )}
+
+            {selectedNode.type === 'merge' && (
+              <>
+                <label>Merge Strategy</label>
+                <select
+                  value={selectedNode.data.config?.strategy || 'concat'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, strategy: e.target.value }
+                  })}
+                >
+                  <option value="concat">Concatenate All</option>
+                  <option value="best">Best Quality (LLM Judge)</option>
+                  <option value="vote">Majority Vote</option>
+                  <option value="first">First Non-Empty</option>
+                  <option value="custom">Custom Code</option>
+                </select>
+
+                <label>Separator</label>
+                <input
+                  type="text"
+                  value={selectedNode.data.config?.separator || '\\n---\\n'}
+                  onChange={(e) => updateNode(selectedNode.id, {
+                    config: { ...selectedNode.data.config, separator: e.target.value }
+                  })}
+                  placeholder="\n---\n"
+                />
+
+                {selectedNode.data.config?.strategy === 'custom' && (
+                  <>
+                    <label>Merge Code</label>
+                    <textarea
+                      value={selectedNode.data.config?.mergeCode || 'return inputs.join("\\n");'}
+                      onChange={(e) => updateNode(selectedNode.id, {
+                        config: { ...selectedNode.data.config, mergeCode: e.target.value }
+                      })}
+                      placeholder="// inputs is array&#10;return inputs[0];"
+                      rows={3}
+                      style={{ fontFamily: 'monospace', fontSize: '12px' }}
+                    />
+                  </>
+                )}
               </>
             )}
 
