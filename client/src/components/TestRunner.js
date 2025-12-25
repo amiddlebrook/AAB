@@ -164,14 +164,7 @@ function TestRunner({ framework, apiUrl }) {
     };
   };
 
-  const formatTimestamp = (timestamp) => {
-    return new Date(timestamp).toLocaleString();
-  };
 
-  const getNodeLabel = (nodeId) => {
-    const node = framework.nodes.find(n => n.id === nodeId);
-    return node?.data?.label || nodeId;
-  };
 
   return (
     <div className="test-runner">
