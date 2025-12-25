@@ -6,6 +6,8 @@ import TestRunner from './components/TestRunner';
 import Dashboard from './components/Dashboard';
 import ChatAgentBuilder from './components/ChatAgentBuilder';
 import CustomCodeEditor from './components/CustomCodeEditor';
+import ImportExport from './components/ImportExport';
+import ABTesting from './components/ABTesting';
 import axios from 'axios';
 
 // Use Cloudflare Worker in production, localhost in development
@@ -139,6 +141,17 @@ function App() {
     setActiveTab('editor');
   };
 
+  const handleImportFramework = (framework) => {
+    const newFramework = {
+      ...framework,
+      id: framework.id || `import-${Date.now()}`,
+      metrics: framework.metrics || { avgLatency: 0, successRate: 0, totalRuns: 0 }
+    };
+    setFrameworks([...frameworks, newFramework]);
+    setSelectedFramework(newFramework);
+    setActiveTab('editor');
+  };
+
   if (loading) {
     return (
       <div className="App loading">
@@ -197,6 +210,18 @@ function App() {
         >
           📊 Dashboard
         </button>
+        <button
+          className={activeTab === 'abtest' ? 'active' : ''}
+          onClick={() => setActiveTab('abtest')}
+        >
+          ⚖️ A/B Test
+        </button>
+        <button
+          className={activeTab === 'import' ? 'active' : ''}
+          onClick={() => setActiveTab('import')}
+        >
+          📦 Import/Export
+        </button>
         <button className="create-btn" onClick={createFramework}>
           + New Framework
         </button>
@@ -237,6 +262,18 @@ function App() {
         {activeTab === 'dashboard' && (
           <Dashboard
             frameworks={frameworks}
+          />
+        )}
+        {activeTab === 'abtest' && (
+          <ABTesting
+            frameworks={frameworks}
+          />
+        )}
+        {activeTab === 'import' && (
+          <ImportExport
+            frameworks={frameworks}
+            onImport={handleImportFramework}
+            onExport={() => { }}
           />
         )}
       </main>
