@@ -12,6 +12,7 @@ function TestRunner({ framework }) {
 
   useEffect(() => {
     loadTestResults();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [framework.id]);
 
   const loadTestResults = async () => {
