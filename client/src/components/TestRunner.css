@@ -1,62 +1,71 @@
 .test-runner {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 1.5rem;
   height: calc(100vh - 200px);
 }
 
-.test-control, .test-history {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.test-control,
+.test-history {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
   overflow-y: auto;
 }
 
-.test-control h2, .test-history h3 {
-  margin-top: 0;
+.test-control h2,
+.test-history h3 {
+  margin: 0 0 1rem 0;
   color: #667eea;
 }
 
 .test-input-section {
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
 }
 
 .test-input-section label {
   display: block;
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: #333;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .test-input-section textarea {
   width: 100%;
-  padding: 10px;
-  border: 2px solid #ddd;
-  border-radius: 5px;
-  font-size: 1em;
-  font-family: monospace;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: white;
+  font-size: 0.9rem;
+  font-family: 'JetBrains Mono', monospace;
   resize: vertical;
   box-sizing: border-box;
 }
 
+.test-input-section textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
 .run-test-btn {
   width: 100%;
-  padding: 15px;
-  background: #667eea;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 1.1em;
-  font-weight: bold;
-  margin-top: 10px;
-  transition: all 0.3s;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  transition: all 0.2s;
 }
 
 .run-test-btn:hover:not(:disabled) {
-  background: #5568d3;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .run-test-btn:disabled {
@@ -65,80 +74,96 @@
 }
 
 .latest-result {
-  margin-top: 20px;
-  padding: 20px;
+  margin-top: 1.5rem;
+  padding: 1.25rem;
   border-radius: 8px;
-  border: 2px solid #4CAF50;
-  background: #f0f9f0;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  background: rgba(76, 175, 80, 0.1);
 }
 
 .latest-result.failure {
-  border-color: #f44336;
-  background: #fff0f0;
+  border-color: rgba(244, 67, 54, 0.4);
+  background: rgba(244, 67, 54, 0.1);
 }
 
 .latest-result h3 {
-  margin-top: 0;
-  color: #333;
+  margin: 0 0 1rem 0;
+  color: white;
 }
 
 .result-details {
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 .result-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #ddd;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.result-row.full-width {
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .result-label {
-  font-weight: bold;
-  color: #666;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .result-value {
-  color: #333;
+  color: white;
+}
+
+.result-value.output {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+  border-radius: 4px;
 }
 
 .result-value.success {
-  color: #4CAF50;
-  font-weight: bold;
+  color: #4caf50;
+  font-weight: 600;
 }
 
 .result-value.failure {
   color: #f44336;
-  font-weight: bold;
+  font-weight: 600;
 }
 
-.node-timings {
-  margin-top: 20px;
+.node-timings,
+.node-outputs {
+  margin-top: 1.25rem;
 }
 
-.node-timings h4 {
-  margin-bottom: 10px;
+.node-timings h4,
+.node-outputs h4 {
+  margin: 0 0 0.75rem 0;
   color: #667eea;
+  font-size: 0.9rem;
 }
 
 .timing-bar {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
-  gap: 10px;
+  margin-bottom: 0.5rem;
+  gap: 0.75rem;
 }
 
 .timing-label {
   width: 100px;
-  font-size: 0.9em;
-  color: #666;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .timing-progress {
   flex: 1;
-  height: 20px;
-  background: #e0e0e0;
-  border-radius: 10px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -151,61 +176,104 @@
 .timing-value {
   width: 60px;
   text-align: right;
-  font-weight: bold;
+  font-weight: 600;
   color: #667eea;
+  font-size: 0.85rem;
+}
+
+.node-output-item {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.node-id {
+  color: #667eea;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.node-output-text {
+  color: rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .history-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.75rem;
 }
 
 .history-item {
-  padding: 15px;
+  padding: 1rem;
   border-radius: 8px;
-  border: 2px solid #e0e0e0;
-  background: white;
-  transition: all 0.3s;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.2s;
 }
 
 .history-item:hover {
-  border-color: #667eea;
-  transform: translateX(5px);
+  border-color: rgba(102, 126, 234, 0.4);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .history-item.success {
-  border-left: 4px solid #4CAF50;
+  border-left: 3px solid #4caf50;
 }
 
 .history-item.failure {
-  border-left: 4px solid #f44336;
+  border-left: 3px solid #f44336;
 }
 
 .history-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .status-badge {
-  font-size: 1.2em;
+  font-size: 1rem;
 }
 
 .history-time {
   flex: 1;
-  color: #666;
-  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
 }
 
 .history-latency {
-  font-weight: bold;
+  font-weight: 600;
   color: #667eea;
+  font-size: 0.85rem;
+}
+
+.history-tokens {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
 }
 
 .history-output {
-  color: #333;
-  font-size: 0.9em;
-  margin-left: 30px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  margin-left: 1.75rem;
+}
+
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+}
+
+@media (max-width: 1024px) {
+  .test-runner {
+    grid-template-columns: 1fr;
+  }
 }

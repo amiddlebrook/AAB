@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './TestRunner.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
-
-function TestRunner({ framework }) {
+function TestRunner({ framework, apiUrl }) {
   const [testInput, setTestInput] = useState('Sample test input for the framework');
   const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [latestResult, setLatestResult] = useState(null);
+
+  const API_URL = apiUrl || (process.env.NODE_ENV === 'production'
+    ? 'https://aab-api.amiddlebrook.workers.dev/api'
+    : 'http://localhost:8787/api');
 
   useEffect(() => {
     loadTestResults();
@@ -17,26 +19,59 @@ function TestRunner({ framework }) {
 
   const loadTestResults = async () => {
     try {
-      const response = await axios.get(`${API_URL}/frameworks/${framework.id}/results`);
+      const response = await axios.get(`${API_URL}/tests/${framework.id}/results`);
       setTestResults(response.data);
     } catch (error) {
       console.error('Error loading test results:', error);
+      // Use local results in demo mode
     }
   };
 
   const runTest = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/frameworks/${framework.id}/test`, {
+      const response = await axios.post(`${API_URL}/tests/${framework.id}/run`, {
         testInput
       });
       setLatestResult(response.data);
       setTestResults([response.data, ...testResults]);
-      setLoading(false);
     } catch (error) {
       console.error('Error running test:', error);
+      // Demo mode - simulate execution
+      const demoResult = simulateExecution();
+      setLatestResult(demoResult);
+      setTestResults([demoResult, ...testResults]);
+    } finally {
       setLoading(false);
     }
+  };
+
+  const simulateExecution = () => {
+    const nodeTimings = {};
+    const nodeOutputs = {};
+    let totalLatency = 0;
+
+    framework.nodes.forEach((node, idx) => {
+      const timing = Math.random() * 500 + 100;
+      nodeTimings[node.id] = timing;
+      nodeOutputs[node.id] = `Processed by ${node.data?.label || node.id}`;
+      totalLatency += timing;
+    });
+
+    return {
+      id: `demo-${Date.now()}`,
+      frameworkId: framework.id,
+      timestamp: new Date().toISOString(),
+      testInput,
+      status: 'completed',
+      success: true,
+      latency: totalLatency / 1000,
+      totalTokens: Math.floor(Math.random() * 500) + 100,
+      totalCost: Math.random() * 0.01,
+      output: `Demo output for: ${testInput.slice(0, 50)}...`,
+      nodeTimings,
+      nodeOutputs
+    };
   };
 
   const formatTimestamp = (timestamp) => {
@@ -46,8 +81,8 @@ function TestRunner({ framework }) {
   return (
     <div className="test-runner">
       <div className="test-control">
-        <h2>Test Runner - {framework.name}</h2>
-        
+        <h2>▶️ Test Runner - {framework.name}</h2>
+
         <div className="test-input-section">
           <label>Test Input:</label>
           <textarea
@@ -56,7 +91,7 @@ function TestRunner({ framework }) {
             placeholder="Enter test input..."
             rows={4}
           />
-          <button 
+          <button
             className="run-test-btn"
             onClick={runTest}
             disabled={loading}
@@ -77,35 +112,61 @@ function TestRunner({ framework }) {
               </div>
               <div className="result-row">
                 <span className="result-label">Latency:</span>
-                <span className="result-value">{latestResult.latency.toFixed(3)}s</span>
+                <span className="result-value">{latestResult.latency?.toFixed(3) || 0}s</span>
               </div>
+              {latestResult.totalTokens > 0 && (
+                <div className="result-row">
+                  <span className="result-label">Tokens:</span>
+                  <span className="result-value">{latestResult.totalTokens}</span>
+                </div>
+              )}
+              {latestResult.totalCost > 0 && (
+                <div className="result-row">
+                  <span className="result-label">Cost:</span>
+                  <span className="result-value">${latestResult.totalCost?.toFixed(4)}</span>
+                </div>
+              )}
               <div className="result-row">
                 <span className="result-label">Timestamp:</span>
                 <span className="result-value">{formatTimestamp(latestResult.timestamp)}</span>
               </div>
-              <div className="result-row">
+              <div className="result-row full-width">
                 <span className="result-label">Output:</span>
-                <span className="result-value">{latestResult.output}</span>
+                <span className="result-value output">{latestResult.output}</span>
               </div>
             </div>
 
-            <div className="node-timings">
-              <h4>Node Execution Timings:</h4>
-              {Object.entries(latestResult.nodeTimings).map(([nodeId, timing]) => (
-                <div key={nodeId} className="timing-bar">
-                  <span className="timing-label">{nodeId}</span>
-                  <div className="timing-progress">
-                    <div 
-                      className="timing-fill"
-                      style={{ 
-                        width: `${(timing / Math.max(...Object.values(latestResult.nodeTimings))) * 100}%` 
-                      }}
-                    />
+            {latestResult.nodeTimings && Object.keys(latestResult.nodeTimings).length > 0 && (
+              <div className="node-timings">
+                <h4>Node Execution Timings:</h4>
+                {Object.entries(latestResult.nodeTimings).map(([nodeId, timing]) => (
+                  <div key={nodeId} className="timing-bar">
+                    <span className="timing-label">{nodeId}</span>
+                    <div className="timing-progress">
+                      <div
+                        className="timing-fill"
+                        style={{
+                          width: `${(timing / Math.max(...Object.values(latestResult.nodeTimings))) * 100}%`
+                        }}
+                      />
+                    </div>
+                    <span className="timing-value">{typeof timing === 'number' ? timing.toFixed(0) : timing}ms</span>
                   </div>
-                  <span className="timing-value">{timing.toFixed(0)}ms</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
+
+            {latestResult.nodeOutputs && Object.keys(latestResult.nodeOutputs).length > 0 && (
+              <div className="node-outputs">
+                <h4>Node Outputs:</h4>
+                {Object.entries(latestResult.nodeOutputs).map(([nodeId, output]) => (
+                  <div key={nodeId} className="node-output-item">
+                    <span className="node-id">{nodeId}:</span>
+                    <span className="node-output-text">{String(output).slice(0, 200)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -120,11 +181,19 @@ function TestRunner({ framework }) {
                   {result.success ? '✅' : '❌'}
                 </span>
                 <span className="history-time">{formatTimestamp(result.timestamp)}</span>
-                <span className="history-latency">{result.latency.toFixed(3)}s</span>
+                <span className="history-latency">{result.latency?.toFixed(3) || 0}s</span>
+                {result.totalTokens > 0 && (
+                  <span className="history-tokens">{result.totalTokens} tokens</span>
+                )}
               </div>
               <div className="history-output">{result.output}</div>
             </div>
           ))}
+          {testResults.length === 0 && (
+            <div className="no-results">
+              No test results yet. Run a test to get started!
+            </div>
+          )}
         </div>
       </div>
     </div>

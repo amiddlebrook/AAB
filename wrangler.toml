@@ -1,0 +1,22 @@
+name = "aab-api"
+main = "worker/index.ts"
+compatibility_date = "2024-12-25"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aab-db"
+database_id = "" # Will be set after creation
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "" # Will be set after creation
+
+[build]
+command = "npm install && npm run build:worker"
+
+[site]
+bucket = "./client/build"
