@@ -1,7 +1,10 @@
-name = "aab-api"
+name = "aab"
 main = "worker/index.ts"
 compatibility_date = "2024-12-25"
 compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare Pages will serve the React build
+# Workers will handle API routes
 
 [vars]
 ENVIRONMENT = "production"
@@ -9,14 +12,20 @@ ENVIRONMENT = "production"
 [[d1_databases]]
 binding = "DB"
 database_name = "aab-db"
-database_id = "" # Will be set after creation
+database_id = "" # Run: npx wrangler d1 create aab-db
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "" # Will be set after creation
+id = "" # Run: npx wrangler kv:namespace create CACHE
 
-[build]
-command = "npm install && npm run build:worker"
-
+# Static assets from React build
 [site]
 bucket = "./client/build"
+
+[build]
+command = "cd client && npm install && npm run build"
+
+# Dev settings
+[dev]
+port = 8787
+local_protocol = "http"

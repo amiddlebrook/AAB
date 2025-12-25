@@ -9,7 +9,7 @@ function TestRunner({ framework, apiUrl }) {
   const [latestResult, setLatestResult] = useState(null);
 
   const API_URL = apiUrl || (process.env.NODE_ENV === 'production'
-    ? 'https://aab-api.amiddlebrook.workers.dev/api'
+    ? '/api'
     : 'http://localhost:8787/api');
 
   useEffect(() => {

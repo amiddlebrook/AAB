@@ -10,7 +10,7 @@ import axios from 'axios';
 
 // Use Cloudflare Worker in production, localhost in development
 const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://aab-api.amiddlebrook.workers.dev/api'
+  ? '/api'
   : 'http://localhost:8787/api';
 
 function App() {
