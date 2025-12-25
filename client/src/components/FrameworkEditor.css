@@ -1,0 +1,141 @@
+.framework-editor {
+  display: flex;
+  height: calc(100vh - 200px);
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.editor-sidebar {
+  width: 300px;
+  padding: 20px;
+  background: #f5f5f5;
+  overflow-y: auto;
+  border-right: 2px solid #ddd;
+}
+
+.editor-sidebar h2 {
+  margin-top: 0;
+  color: #667eea;
+}
+
+.editor-section {
+  margin-bottom: 20px;
+}
+
+.editor-section label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.editor-section input,
+.editor-section textarea,
+.editor-section select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 0.9em;
+  box-sizing: border-box;
+}
+
+.editor-section textarea {
+  resize: vertical;
+}
+
+.node-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.node-buttons button {
+  padding: 10px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.node-buttons button:hover {
+  opacity: 0.8;
+  transform: translateX(5px);
+}
+
+.node-editor {
+  background: white;
+  padding: 15px;
+  border-radius: 5px;
+  border: 2px solid #667eea;
+}
+
+.node-editor h3 {
+  margin-top: 0;
+  color: #667eea;
+}
+
+.node-editor input[type="range"] {
+  width: calc(100% - 40px);
+}
+
+.node-editor span {
+  margin-left: 10px;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.delete-node-btn {
+  width: 100%;
+  padding: 10px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.delete-node-btn:hover {
+  background: #d32f2f;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 15px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.save-btn:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+}
+
+.editor-stats {
+  margin-top: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 5px;
+}
+
+.editor-stats p {
+  margin: 5px 0;
+  color: #666;
+}
+
+.editor-canvas {
+  flex: 1;
+  background: #fafafa;
+}

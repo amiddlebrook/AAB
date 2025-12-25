@@ -1,0 +1,80 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.App-header {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  color: white;
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: 2.5em;
+}
+
+.App-header p {
+  margin: 10px 0 0 0;
+  font-size: 1.1em;
+  opacity: 0.9;
+}
+
+.App-nav {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.App-nav button {
+  padding: 10px 20px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 1em;
+  transition: all 0.3s;
+}
+
+.App-nav button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.App-nav button.active {
+  background-color: rgba(255, 255, 255, 0.4);
+  font-weight: bold;
+}
+
+.App-nav button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.App-nav button.create-btn {
+  background-color: #4CAF50;
+  margin-left: auto;
+}
+
+.App-nav button.create-btn:hover {
+  background-color: #45a049;
+}
+
+.App-main {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.5em;
+}
