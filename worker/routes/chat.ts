@@ -118,10 +118,13 @@ chatRoutes.post('/generate', async (c) => {
         return c.json({ error: 'Description required' }, 400);
     }
 
+    // Determine API Key (Client override -> AAB Secret -> Standard Secret)
+    const activeApiKey = body.apiKey || c.env.AAB_OPENROUTER_API_KEY || c.env.OPENROUTER_API_KEY;
+
     // Check for API key
-    if (!c.env.AAB_OPENROUTER_API_KEY) {
-        console.error('Missing AAB_OPENROUTER_API_KEY');
-        return c.json({ error: 'Missing API Key: AAB_OPENROUTER_API_KEY is not set in worker environment.' }, 500);
+    if (!activeApiKey) {
+        console.error('Missing API Key');
+        return c.json({ error: 'Missing API Key: Set AAB_OPENROUTER_API_KEY (or OPENROUTER_API_KEY) in backend.' }, 500);
     }
 
     const prompt = `Generate a framework for the following description:
@@ -145,7 +148,7 @@ Use appropriate node types and connect them logically.`;
                 { role: 'system', content: SYSTEM_PROMPT },
                 { role: 'user', content: prompt }
             ],
-            c.env.AAB_OPENROUTER_API_KEY,
+            activeApiKey,
             {
                 model: 'meta-llama/llama-3.3-70b-instruct:free',
                 temperature: 0.5,
