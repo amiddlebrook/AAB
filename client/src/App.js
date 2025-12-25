@@ -32,6 +32,10 @@ function App() {
       setError(null);
       const response = await axios.get(`${API_URL}/frameworks`);
       setFrameworks(response.data);
+      // Auto-select first framework
+      if (response.data.length > 0) {
+        setSelectedFramework(response.data[0]);
+      }
     } catch (err) {
       console.error('Error loading frameworks:', err);
       setError('Failed to load frameworks. Using demo mode.');
@@ -43,7 +47,7 @@ function App() {
           description: 'A simple sequential chain of agents processing data in order',
           nodes: [
             { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Input' } },
-            { id: 'agent1', type: 'agent', position: { x: 300, y: 200 }, data: { label: 'Analyzer', config: { model: 'anthropic/claude-3.5-sonnet', temperature: 0.7 } } },
+            { id: 'agent1', type: 'agent', position: { x: 300, y: 200 }, data: { label: 'Analyzer', config: { model: 'meta-llama/llama-3.3-70b-instruct:free', temperature: 0.7 } } },
             { id: 'output', type: 'output', position: { x: 500, y: 200 }, data: { label: 'Output' } }
           ],
           edges: [
@@ -117,6 +121,22 @@ function App() {
           metrics: { avgLatency: 3.2, successRate: 0.88, totalRuns: 15 }
         }
       ]);
+      // Auto-select first demo framework
+      setSelectedFramework({
+        id: 'demo-1',
+        name: 'Sequential Agent Chain',
+        description: 'A simple sequential chain of agents processing data in order',
+        nodes: [
+          { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Input' } },
+          { id: 'agent1', type: 'agent', position: { x: 300, y: 200 }, data: { label: 'Analyzer', config: { model: 'meta-llama/llama-3.3-70b-instruct:free', temperature: 0.7 } } },
+          { id: 'output', type: 'output', position: { x: 500, y: 200 }, data: { label: 'Output' } }
+        ],
+        edges: [
+          { id: 'e1', source: 'input', target: 'agent1', type: 'smoothstep' },
+          { id: 'e2', source: 'agent1', target: 'output', type: 'smoothstep' }
+        ],
+        metrics: { avgLatency: 1.5, successRate: 0.95, totalRuns: 25 }
+      });
     } finally {
       setLoading(false);
     }
