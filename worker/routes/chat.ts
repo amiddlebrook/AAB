@@ -37,7 +37,7 @@ Always explain your reasoning and offer alternatives.`;
 // Chat with the builder agent
 chatRoutes.post('/', async (c) => {
     const body = await c.req.json();
-    const { messages, generateFramework } = body;
+    const { messages, generateFramework, model } = body;
 
     if (!messages || !Array.isArray(messages)) {
         return c.json({ error: 'Messages array required' }, 400);
@@ -62,7 +62,7 @@ chatRoutes.post('/', async (c) => {
             fullMessages,
             c.env.AAB_OPENROUTER_API_KEY,
             {
-                model: 'meta-llama/llama-3.3-70b-instruct:free',
+                model: model || 'meta-llama/llama-3.3-70b-instruct:free',
                 temperature: 0.7,
                 maxTokens: 4096
             }

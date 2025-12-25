@@ -2,6 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './ChatAgentBuilder.css';
 
+const AVAILABLE_MODELS = [
+    { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (Free)' },
+    { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (Free)' },
+    { id: 'microsoft/phi-4:free', name: 'Phi-4 (Free)' },
+    { id: 'qwen/qwen-2.5-coder-32b-instruct:free', name: 'Qwen 2.5 Coder (Free)' }
+];
+
 function ChatAgentBuilder({ onFrameworkGenerated, apiUrl }) {
     const [messages, setMessages] = useState([
         {
@@ -20,6 +27,7 @@ What would you like to build today?`
         }
     ]);
     const [input, setInput] = useState('');
+    const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0].id);
     const [loading, setLoading] = useState(false);
     const [generatedFramework, setGeneratedFramework] = useState(null);
     const messagesEndRef = useRef(null);
@@ -42,7 +50,8 @@ What would you like to build today?`
 
         try {
             const response = await axios.post(`${apiUrl}/chat`, {
-                messages: messages.filter(m => m.role !== 'system').concat(userMessage)
+                messages: messages.filter(m => m.role !== 'system').concat(userMessage),
+                model: selectedModel
             });
 
             const assistantMessage = {
@@ -239,7 +248,8 @@ It's a solid starting point for many agentic workflows.`,
         setLoading(true);
         try {
             const response = await axios.post(`${apiUrl}/chat/generate`, {
-                description: input || 'A simple 2-agent sequential chain for text processing'
+                description: input || 'A simple 2-agent sequential chain for text processing',
+                model: selectedModel
             });
             setGeneratedFramework(response.data.framework);
         } catch (err) {
@@ -267,7 +277,18 @@ It's a solid starting point for many agentic workflows.`,
     return (
         <div className="chat-builder">
             <div className="chat-header">
-                <h2>Chat Agent Builder</h2>
+                <div className="header-row">
+                    <h2>Chat Agent Builder</h2>
+                    <select
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                        className="model-select"
+                    >
+                        {AVAILABLE_MODELS.map(m => (
+                            <option key={m.id} value={m.id}>{m.name}</option>
+                        ))}
+                    </select>
+                </div>
                 <p>Describe what you want to build in natural language</p>
             </div>
 

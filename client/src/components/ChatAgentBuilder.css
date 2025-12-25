@@ -19,11 +19,39 @@
   border-bottom: 1px solid #2a2a2a;
 }
 
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
 .chat-header h2 {
   font-size: 14px;
   font-weight: 600;
   color: #e5e5e5;
-  margin: 0 0 4px;
+  margin: 0;
+}
+
+.model-select {
+  background: #141414;
+  color: #a0a0a0;
+  border: 1px solid #333;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+}
+
+.model-select:hover {
+  border-color: #666;
+  color: #e5e5e5;
+}
+
+.model-select:focus {
+  border-color: #d97b3c;
 }
 
 .chat-header p {
