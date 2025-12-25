@@ -6,7 +6,7 @@ import TestRunner from './components/TestRunner';
 import Dashboard from './components/Dashboard';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 function App() {
   const [frameworks, setFrameworks] = useState([]);

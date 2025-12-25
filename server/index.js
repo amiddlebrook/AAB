@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
@@ -8,7 +7,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 // In-memory storage for frameworks
 let frameworks = [
