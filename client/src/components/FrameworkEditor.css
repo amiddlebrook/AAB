@@ -1,91 +1,71 @@
-/* FrameworkEditor - Da Vinci Theme */
+/* FrameworkEditor - Professional */
 
 .framework-editor {
   display: flex;
-  height: calc(100vh - 120px);
-  gap: 0;
-  background: #1a1a1a;
+  height: calc(100vh - 80px);
+  /* Account for header + nav */
+  background: #141414;
+  overflow: hidden;
 }
 
-/* ===== SIDEBAR ===== */
+/* Sidebar */
 .editor-sidebar {
-  width: 300px;
-  background: #232323;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  width: 260px;
+  background: #1a1a1a;
+  border-right: 1px solid #2a2a2a;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  z-index: 10;
 }
 
 .sidebar-header {
-  padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 14px;
+  border-bottom: 1px solid #2a2a2a;
+  background: #1e1e1e;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  background: #2d2d2d;
+  align-items: center;
 }
 
 .sidebar-header h2 {
+  font-size: 11px;
+  font-weight: 500;
+  color: #bbb;
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #e8e8e8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .save-status {
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 3px;
-}
-
-.save-status.saved {
-  background: rgba(88, 166, 92, 0.15);
-  color: #58a65c;
+  font-size: 10px;
+  color: #555;
+  font-family: 'SF Mono', monospace;
 }
 
 .save-status.unsaved {
-  background: rgba(224, 123, 57, 0.15);
-  color: #e07b39;
+  color: #d97b3c;
 }
 
-/* ===== SECTIONS ===== */
+.save-status.saved {
+  color: #3a8;
+}
+
+/* Node Palette */
 .editor-section {
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px 14px;
+  border-bottom: 1px solid #252525;
 }
 
 .editor-section label {
-  display: block;
   font-size: 10px;
-  font-weight: 600;
-  color: #707070;
+  color: #666;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  display: block;
 }
 
-.editor-section input,
-.editor-section textarea,
-.editor-section select {
-  width: 100%;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  padding: 8px 10px;
-  color: #e8e8e8;
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-.editor-section input:focus,
-.editor-section textarea:focus,
-.editor-section select:focus {
-  outline: none;
-  border-color: #e07b39;
-}
-
-/* ===== NODE PALETTE ===== */
 .node-palette {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -96,274 +76,249 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 10px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 3px solid var(--node-color, #e07b39);
-  border-radius: 4px;
-  color: #a0a0a0;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  padding: 6px 8px;
+  background: #222;
+  border: 1px solid #333;
+  border-left: 2px solid var(--node-color);
+  border-radius: 2px;
+  cursor: grab;
+  color: #aaa;
+  font-size: 10px;
+  transition: all 0.1s;
 }
 
 .palette-node:hover {
-  background: #2d2d2d;
-  color: #e8e8e8;
-  border-color: var(--node-color, #e07b39);
+  background: #282828;
+  color: #ddd;
+  border-color: #444;
+}
+
+.palette-node:active {
+  cursor: grabbing;
 }
 
 .palette-node .node-icon {
-  font-size: 14px;
+  font-family: 'SF Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--node-color);
+  opacity: 0.8;
 }
 
-.palette-node .node-name {
-  font-weight: 500;
-}
-
-/* ===== NODE EDITOR PANEL ===== */
+/* Selected Node Editor */
 .node-editor {
-  background: #1a1a1a;
-  border-radius: 4px;
-  margin-top: 4px;
+  background: #1e1e1e;
+  border-top: 1px solid #2a2a2a;
+  padding: 14px;
+  margin-top: auto;
 }
 
 .node-editor-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .node-editor-header h3 {
+  font-size: 11px;
+  color: #ddd;
   margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #e8e8e8;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-weight: 500;
 }
 
 .close-btn {
-  width: 24px;
-  height: 24px;
-  background: transparent;
+  background: none;
   border: none;
-  color: #707070;
-  font-size: 18px;
+  font-size: 14px;
+  line-height: 1;
+  color: #555;
   cursor: pointer;
-  border-radius: 3px;
+  padding: 0;
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e8e8e8;
+  color: #999;
 }
 
-/* ===== NODE ACTIONS ===== */
 .node-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .action-btn {
   flex: 1;
-  padding: 8px 12px;
-  background: #2d2d2d;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  color: #a0a0a0;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  padding: 4px 10px;
+  background: #252525;
+  border: 1px solid #333;
+  color: #aaa;
+  font-size: 10px;
+  border-radius: 2px;
 }
 
 .action-btn:hover {
-  background: #303030;
-  color: #e8e8e8;
+  background: #2a2a2a;
+  color: #ddd;
 }
 
 .delete-btn {
   flex: 1;
-  padding: 8px 12px;
-  background: rgba(199, 69, 69, 0.1);
-  border: 1px solid rgba(199, 69, 69, 0.3);
-  border-radius: 4px;
-  color: #c74545;
-  font-size: 12px;
-  cursor: pointer;
+  padding: 4px 10px;
+  background: rgba(187, 68, 68, 0.1);
+  border: 1px solid rgba(187, 68, 68, 0.2);
+  color: #b44;
+  font-size: 10px;
+  border-radius: 2px;
 }
 
 .delete-btn:hover {
-  background: #c74545;
+  background: #b44;
   color: white;
 }
 
-/* ===== SAVE BUTTON ===== */
+/* Save Button */
 .save-btn {
   width: 100%;
-  padding: 10px 16px;
-  background: #e07b39;
-  border: none;
-  border-radius: 4px;
+  padding: 8px;
+  margin-top: 12px;
+  background: #d97b3c;
   color: white;
-  font-size: 13px;
+  border: none;
+  border-radius: 2px;
+  font-size: 11px;
   font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s ease;
 }
 
 .save-btn:hover {
-  background: #c9652e;
+  filter: brightness(1.1);
 }
 
 .save-btn.saved {
-  background: #58a65c;
+  background: #2a2a2a;
+  color: #666;
 }
 
-/* ===== STATS ===== */
-.editor-stats {
-  display: flex;
-  padding: 12px 16px;
-  gap: 16px;
-  margin-top: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: #2d2d2d;
-}
-
-.editor-stats .stat {
-  text-align: center;
-}
-
-.editor-stats .stat-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #e07b39;
-}
-
-.editor-stats .stat-label {
-  font-size: 10px;
-  color: #707070;
-  text-transform: uppercase;
-}
-
-/* ===== CANVAS ===== */
+/* Canvas Area */
 .editor-canvas {
   flex: 1;
-  position: relative;
+  background: #141414;
 }
 
-/* ===== CUSTOM NODES ===== */
+.react-flow__background {
+  background: #141414;
+}
+
+.react-flow__node {
+  border-radius: 3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 .custom-node {
   min-width: 140px;
-  background: #2d2d2d;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 3px solid var(--node-color, #e07b39);
-  border-radius: 6px;
-  padding: 10px 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-left: 3px solid var(--node-color, #666);
+  color: #ddd;
+  padding: 8px 10px;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.15s;
 }
 
-.custom-node:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+.react-flow__node.selected .custom-node {
+  border-color: #d97b3c;
+  box-shadow: 0 0 0 1px #d97b3c;
 }
 
 .node-header {
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-bottom: 4px;
 }
 
 .node-icon {
-  font-size: 14px;
+  font-size: 10px;
+  font-family: 'SF Mono', monospace;
+  font-weight: 600;
+  color: var(--node-color);
+  opacity: 0.9;
 }
 
 .node-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #e8e8e8;
+  font-size: 11px;
+  font-weight: 500;
+  color: #eee;
 }
 
 .node-model {
-  margin-top: 6px;
-  font-size: 10px;
-  color: #707070;
-  padding: 3px 6px;
-  background: #1a1a1a;
-  border-radius: 3px;
+  font-size: 9px;
+  color: #666;
+  margin-top: 2px;
+  font-family: 'SF Mono', monospace;
 }
 
 .node-temp {
-  margin-top: 4px;
-  font-size: 10px;
-  color: #e07b39;
+  font-size: 9px;
+  color: #d97b3c;
+  margin-left: 4px;
 }
 
-/* React Flow handles */
+/* Handles */
 .react-flow__handle {
-  width: 10px;
-  height: 10px;
-  background: #e07b39;
-  border: 2px solid #1a1a1a;
+  width: 6px;
+  height: 6px;
+  background: #555;
+  border: 1px solid #1a1a1a;
+  border-radius: 50%;
 }
 
 .react-flow__handle:hover {
-  background: #c9652e;
+  background: #d97b3c;
+  transform: scale(1.2);
 }
 
-/* React Flow edges */
 .react-flow__edge-path {
-  stroke: #e07b39;
-  stroke-width: 2;
+  stroke: #444;
+  stroke-width: 1.5;
 }
 
-/* Controls & MiniMap */
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #d97b3c;
+}
+
+/* Controls */
 .react-flow__controls {
-  background: #2d2d2d;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
+  border: 1px solid #2a2a2a;
+  border-radius: 2px;
+  overflow: hidden;
 }
 
 .react-flow__controls-button {
-  background: #2d2d2d;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: #a0a0a0;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+  color: #666;
+  width: 24px;
+  height: 24px;
 }
 
 .react-flow__controls-button:hover {
-  background: #303030;
-  color: #e8e8e8;
+  background: #252525;
+  color: #ddd;
 }
 
 .react-flow__minimap {
   background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  border: 1px solid #2a2a2a;
+  border-radius: 2px;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .framework-editor {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .editor-sidebar {
-    width: 100%;
-    max-height: 300px;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .editor-canvas {
-    height: 400px;
-  }
+/* Helper text */
+.react-flow__attribution {
+  display: none;
 }

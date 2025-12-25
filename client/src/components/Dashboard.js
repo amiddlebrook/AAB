@@ -89,7 +89,7 @@ function Dashboard({ frameworks }) {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h2>📊 Analytics Dashboard</h2>
+        <h2>Analytics Dashboard</h2>
         <div className="time-filter">
           <button
             className={timeRange === 'today' ? 'active' : ''}
@@ -112,7 +112,6 @@ function Dashboard({ frameworks }) {
 
       <div className="stats-grid">
         <div className="stat-card primary">
-          <div className="stat-icon">📦</div>
           <div className="stat-content">
             <div className="stat-number">{frameworks.length}</div>
             <div className="stat-label">Frameworks</div>
@@ -120,7 +119,6 @@ function Dashboard({ frameworks }) {
         </div>
 
         <div className="stat-card success">
-          <div className="stat-icon">🚀</div>
           <div className="stat-content">
             <div className="stat-number">{metrics.totalRuns}</div>
             <div className="stat-label">Total Runs</div>
@@ -128,7 +126,6 @@ function Dashboard({ frameworks }) {
         </div>
 
         <div className="stat-card warning">
-          <div className="stat-icon">✅</div>
           <div className="stat-content">
             <div className="stat-number">{(metrics.avgSuccessRate * 100).toFixed(1)}%</div>
             <div className="stat-label">Avg Success</div>
@@ -136,7 +133,6 @@ function Dashboard({ frameworks }) {
         </div>
 
         <div className="stat-card info">
-          <div className="stat-icon">⚡</div>
           <div className="stat-content">
             <div className="stat-number">{metrics.avgLatency.toFixed(2)}s</div>
             <div className="stat-label">Avg Latency</div>
@@ -144,7 +140,6 @@ function Dashboard({ frameworks }) {
         </div>
 
         <div className="stat-card cost">
-          <div className="stat-icon">💰</div>
           <div className="stat-content">
             <div className="stat-number">${metrics.estimatedCost.toFixed(4)}</div>
             <div className="stat-label">Est. Cost</div>
@@ -152,7 +147,6 @@ function Dashboard({ frameworks }) {
         </div>
 
         <div className="stat-card tokens">
-          <div className="stat-icon">🔤</div>
           <div className="stat-content">
             <div className="stat-number">{metrics.estimatedTokens.toLocaleString()}</div>
             <div className="stat-label">Total Tokens</div>
@@ -162,7 +156,7 @@ function Dashboard({ frameworks }) {
 
       <div className="dashboard-grid">
         <div className="chart-section">
-          <h3>📈 Framework Performance</h3>
+          <h3>Framework Performance</h3>
           <div className="performance-chart">
             {frameworks.map((framework) => (
               <div key={framework.id} className="framework-row">
@@ -196,7 +190,7 @@ function Dashboard({ frameworks }) {
             ))}
             {frameworks.length === 0 && (
               <div className="empty-state">
-                <span>📭</span>
+                <span>—</span>
                 <p>No frameworks yet. Create one to see analytics!</p>
               </div>
             )}
@@ -204,7 +198,7 @@ function Dashboard({ frameworks }) {
         </div>
 
         <div className="chart-section">
-          <h3>🤖 Model Usage</h3>
+          <h3>Model Usage</h3>
           <div className="model-usage">
             {Object.entries(metrics.modelUsage).length > 0 ? (
               Object.entries(metrics.modelUsage).map(([model, count]) => (
@@ -225,7 +219,7 @@ function Dashboard({ frameworks }) {
               ))
             ) : (
               <div className="empty-state small">
-                <span>🤖</span>
+                <span>—</span>
                 <p>Add agents to see model distribution</p>
               </div>
             )}
@@ -233,7 +227,7 @@ function Dashboard({ frameworks }) {
         </div>
 
         <div className="chart-section">
-          <h3>🧩 Node Types Distribution</h3>
+          <h3>Node Types Distribution</h3>
           <div className="node-distribution">
             {Object.entries(metrics.nodeTypeCount).length > 0 ? (
               <div className="node-grid">
@@ -246,7 +240,7 @@ function Dashboard({ frameworks }) {
               </div>
             ) : (
               <div className="empty-state small">
-                <span>🧩</span>
+                <span>—</span>
                 <p>Create frameworks to see node distribution</p>
               </div>
             )}
@@ -254,11 +248,10 @@ function Dashboard({ frameworks }) {
         </div>
 
         <div className="highlights-section">
-          <h3>🏆 Top Performers</h3>
+          <h3>Top Performers</h3>
           <div className="highlights-grid">
             {bestPerforming && (
               <div className="highlight-card success">
-                <div className="highlight-icon">🎯</div>
                 <div className="highlight-content">
                   <div className="highlight-title">Most Accurate</div>
                   <div className="highlight-name">{bestPerforming.name}</div>
@@ -271,7 +264,6 @@ function Dashboard({ frameworks }) {
 
             {fastestFramework && (
               <div className="highlight-card speed">
-                <div className="highlight-icon">⚡</div>
                 <div className="highlight-content">
                   <div className="highlight-title">Fastest</div>
                   <div className="highlight-name">{fastestFramework.name}</div>
@@ -284,7 +276,6 @@ function Dashboard({ frameworks }) {
 
             {mostEfficientFramework && (
               <div className="highlight-card efficiency">
-                <div className="highlight-icon">💎</div>
                 <div className="highlight-content">
                   <div className="highlight-title">Most Efficient</div>
                   <div className="highlight-name">{mostEfficientFramework.name}</div>

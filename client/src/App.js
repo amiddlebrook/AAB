@@ -250,8 +250,9 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>🤖 AAB - Agentic Architecture Platform</h1>
-        <p>Build, Test, and Optimize Novel Agent Architectures</p>
+        <h1>AAB</h1>
+        <span className="header-divider">|</span>
+        <span className="header-subtitle">Agentic Architecture Platform</span>
         {error && <div className="error-banner">{error}</div>}
       </header>
 
@@ -260,54 +261,54 @@ function App() {
           className={activeTab === 'list' ? 'active' : ''}
           onClick={() => setActiveTab('list')}
         >
-          📦 Frameworks
+          Frameworks
         </button>
         <button
           className={activeTab === 'chat' ? 'active' : ''}
           onClick={() => setActiveTab('chat')}
         >
-          💬 Chat Builder
+          Builder
         </button>
         <button
           className={activeTab === 'code' ? 'active' : ''}
           onClick={() => setActiveTab('code')}
         >
-          💻 Code Editor
+          Code
         </button>
         <button
           className={activeTab === 'editor' ? 'active' : ''}
           onClick={() => setActiveTab('editor')}
           disabled={!selectedFramework}
         >
-          🔧 Visual Editor
+          Editor
         </button>
         <button
           className={activeTab === 'test' ? 'active' : ''}
           onClick={() => setActiveTab('test')}
           disabled={!selectedFramework}
         >
-          ▶️ Test Runner
+          Test
         </button>
         <button
           className={activeTab === 'dashboard' ? 'active' : ''}
           onClick={() => setActiveTab('dashboard')}
         >
-          📊 Dashboard
+          Analytics
         </button>
         <button
           className={activeTab === 'abtest' ? 'active' : ''}
           onClick={() => setActiveTab('abtest')}
         >
-          ⚖️ A/B Test
+          Compare
         </button>
         <button
           className={activeTab === 'import' ? 'active' : ''}
           onClick={() => setActiveTab('import')}
         >
-          📦 Import/Export
+          Import
         </button>
         <button className="create-btn" onClick={createFramework}>
-          + New Framework
+          + New
         </button>
       </nav>
 

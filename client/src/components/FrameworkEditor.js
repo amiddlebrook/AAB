@@ -13,69 +13,69 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import './FrameworkEditor.css';
 
-// Node type definitions with icons and colors
+// Node type definitions
 const NODE_TYPES_CONFIG = {
   input: {
-    icon: '📥',
-    color: '#238636',
+    icon: 'IN',
+    color: '#3a8a5e',
     label: 'Input',
-    description: 'Entry point for data'
+    description: 'Entry point'
   },
   output: {
-    icon: '📤',
-    color: '#da3633',
+    icon: 'OUT',
+    color: '#a85454',
     label: 'Output',
-    description: 'Final output node'
+    description: 'Final output'
   },
   agent: {
-    icon: '🤖',
-    color: '#8b5cf6',
+    icon: 'AI',
+    color: '#7c5cc4',
     label: 'Agent',
-    description: 'LLM agent node',
+    description: 'LLM agent',
     hasConfig: true
   },
   processor: {
-    icon: '⚙️',
-    color: '#f97316',
+    icon: 'FN',
+    color: '#c97a3c',
     label: 'Processor',
-    description: 'Custom code processor',
+    description: 'Code processor',
     hasCode: true
   },
   rag: {
-    icon: '📚',
-    color: '#0ea5e9',
+    icon: 'RAG',
+    color: '#3a8ab5',
     label: 'RAG',
-    description: 'Retrieval Augmented Generation'
+    description: 'Retrieval augmented'
   },
   router: {
-    icon: '🔀',
-    color: '#ec4899',
+    icon: 'RT',
+    color: '#b54a7a',
     label: 'Router',
     description: 'Conditional routing'
   },
   tool: {
-    icon: '🔧',
-    color: '#eab308',
+    icon: 'TL',
+    color: '#b5a33a',
     label: 'Tool',
-    description: 'External API/function call'
+    description: 'External API call'
   },
   memory: {
-    icon: '🧠',
-    color: '#14b8a6',
+    icon: 'MEM',
+    color: '#3a9a8a',
     label: 'Memory',
-    description: 'Persistent state storage'
+    description: 'State storage'
   },
   parallel: {
-    icon: '⚡',
-    color: '#6366f1',
+    icon: 'PAR',
+    color: '#5a5ac4',
     label: 'Parallel',
-    description: 'Parallel execution splitter'
+    description: 'Parallel split'
   },
   merge: {
-    icon: '🔗',
-    color: '#a855f7',
+    icon: 'MRG',
+    color: '#8a5ab5',
     label: 'Merge',
-    description: 'Combine parallel outputs'
+    description: 'Combine outputs'
   },
 };
 

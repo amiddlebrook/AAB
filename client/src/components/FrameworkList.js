@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import './FrameworkList.css';
 
-// Node type icons for visualization
+// Node type abbreviations
 const NODE_ICONS = {
-  input: '📥',
-  output: '📤',
-  agent: '🤖',
-  processor: '⚙️',
-  rag: '📚',
-  router: '🔀',
-  tool: '🔧',
-  memory: '🧠',
-  parallel: '⚡',
-  merge: '🔗',
-  default: '⬡'
+  input: 'IN',
+  output: 'OUT',
+  agent: 'AI',
+  processor: 'FN',
+  rag: 'RAG',
+  router: 'RT',
+  tool: 'TL',
+  memory: 'MEM',
+  parallel: 'PAR',
+  merge: 'MRG',
+  default: '•'
 };
 
 function FrameworkList({ frameworks, onSelect, onDelete }) {
@@ -54,10 +54,9 @@ function FrameworkList({ frameworks, onSelect, onDelete }) {
   return (
     <div className="framework-list">
       <div className="list-header">
-        <h2>📦 Frameworks</h2>
+        <h2>Frameworks</h2>
         <div className="list-controls">
           <div className="search-box">
-            <span className="search-icon">🔍</span>
             <input
               type="text"
               placeholder="Search frameworks..."
@@ -80,7 +79,7 @@ function FrameworkList({ frameworks, onSelect, onDelete }) {
 
       {filteredFrameworks.length === 0 ? (
         <div className="empty-state">
-          <span className="empty-icon">📭</span>
+          <span className="empty-icon">—</span>
           <h3>{searchTerm ? 'No frameworks match your search' : 'No frameworks yet'}</h3>
           <p>
             {searchTerm
@@ -152,7 +151,7 @@ function FrameworkList({ frameworks, onSelect, onDelete }) {
 
                 {framework.metrics?.avgLatency > 0 && (
                   <div className="latency-badge">
-                    ⚡ {framework.metrics.avgLatency.toFixed(2)}s avg
+                    {framework.metrics.avgLatency.toFixed(2)}s avg
                   </div>
                 )}
               </div>
