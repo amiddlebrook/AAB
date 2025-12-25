@@ -62,11 +62,14 @@ What would you like to build today?`
             }
         } catch (err) {
             console.error('Chat error:', err);
+            // Get actual error from backend if available
+            const backendError = err.response?.data?.error || err.message || 'Unknown Error';
+
             // Demo mode fallback with explicit notification
             const demoResponse = generateDemoResponse(input);
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: `[OFFLINE MODE - API ERROR: ${err.message || 'Unknown'}]\n\n` + demoResponse.content
+                content: `[OFFLINE MODE - API ERROR: ${backendError}]\n\n` + demoResponse.content
             }]);
             if (demoResponse.framework) {
                 setGeneratedFramework(demoResponse.framework);
@@ -254,12 +257,14 @@ It's a solid starting point for many agentic workflows.`,
         } catch (err) {
             // Demo fallback
             console.error('Quick Gen error:', err);
+            const backendError = err.response?.data?.error || err.message || 'Unknown Error';
+
             const demo = generateDemoResponse(input || 'simple agent chain');
             if (demo.framework) {
                 setGeneratedFramework(demo.framework);
                 setMessages(prev => [...prev, {
                     role: 'assistant',
-                    content: `[OFFLINE MODE - API ERROR: ${err.message}]\n\n` + demo.content
+                    content: `[OFFLINE MODE - API ERROR: ${backendError}]\n\n` + demo.content
                 }]);
             }
         } finally {
