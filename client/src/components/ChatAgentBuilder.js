@@ -63,7 +63,12 @@ What would you like to build today?`
         } catch (err) {
             console.error('Chat error:', err);
             // Get actual error from backend if available
-            const backendError = err.response?.data?.error || err.message || 'Unknown Error';
+            let backendError = err.response?.data?.error || err.message || 'Unknown Error';
+
+            // Check for specific OpenRouter Privacy/Data Policy error
+            if (JSON.stringify(backendError).includes('data policy') || JSON.stringify(backendError).includes('Free model training')) {
+                backendError += '\n\nAction Required: You must enable "Allow using my data for model training" in OpenRouter settings to use free models.\nVisit: https://openrouter.ai/settings/privacy';
+            }
 
             // Demo mode fallback with explicit notification
             const demoResponse = generateDemoResponse(input);
@@ -257,7 +262,12 @@ It's a solid starting point for many agentic workflows.`,
         } catch (err) {
             // Demo fallback
             console.error('Quick Gen error:', err);
-            const backendError = err.response?.data?.error || err.message || 'Unknown Error';
+            let backendError = err.response?.data?.error || err.message || 'Unknown Error';
+
+            // Check for specific OpenRouter Privacy/Data Policy error
+            if (JSON.stringify(backendError).includes('data policy') || JSON.stringify(backendError).includes('Free model training')) {
+                backendError += '\n\nAction Required: You must enable "Allow using my data for model training" in OpenRouter settings to use free models.\nVisit: https://openrouter.ai/settings/privacy';
+            }
 
             const demo = generateDemoResponse(input || 'simple agent chain');
             if (demo.framework) {
