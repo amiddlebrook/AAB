@@ -35,22 +35,86 @@ function App() {
     } catch (err) {
       console.error('Error loading frameworks:', err);
       setError('Failed to load frameworks. Using demo mode.');
-      // Provide demo data when API is unavailable
+      // Provide rich demo data when API is unavailable
       setFrameworks([
         {
           id: 'demo-1',
           name: 'Sequential Agent Chain',
           description: 'A simple sequential chain of agents processing data in order',
           nodes: [
-            { id: 'input', type: 'input', position: { x: 100, y: 100 }, data: { label: 'Input' } },
-            { id: 'agent1', type: 'agent', position: { x: 300, y: 100 }, data: { label: 'Agent 1', config: { model: 'anthropic/claude-3.5-sonnet', temperature: 0.7 } } },
-            { id: 'output', type: 'output', position: { x: 500, y: 100 }, data: { label: 'Output' } }
+            { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Input' } },
+            { id: 'agent1', type: 'agent', position: { x: 300, y: 200 }, data: { label: 'Analyzer', config: { model: 'anthropic/claude-3.5-sonnet', temperature: 0.7 } } },
+            { id: 'output', type: 'output', position: { x: 500, y: 200 }, data: { label: 'Output' } }
           ],
           edges: [
             { id: 'e1', source: 'input', target: 'agent1', type: 'smoothstep' },
             { id: 'e2', source: 'agent1', target: 'output', type: 'smoothstep' }
           ],
-          metrics: { avgLatency: 1.5, successRate: 0.95, totalRuns: 10 }
+          metrics: { avgLatency: 1.5, successRate: 0.95, totalRuns: 25 }
+        },
+        {
+          id: 'demo-2',
+          name: 'RAG Pipeline',
+          description: 'Retrieval-augmented generation with vector search for context-aware responses',
+          nodes: [
+            { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Query' } },
+            { id: 'rag', type: 'rag', position: { x: 280, y: 200 }, data: { label: 'Vector Search', config: { topK: 3 } } },
+            { id: 'agent', type: 'agent', position: { x: 460, y: 200 }, data: { label: 'Generator', config: { model: 'openai/gpt-4o', temperature: 0.5 } } },
+            { id: 'output', type: 'output', position: { x: 640, y: 200 }, data: { label: 'Response' } }
+          ],
+          edges: [
+            { id: 'e1', source: 'input', target: 'rag', type: 'smoothstep' },
+            { id: 'e2', source: 'rag', target: 'agent', type: 'smoothstep' },
+            { id: 'e3', source: 'agent', target: 'output', type: 'smoothstep' }
+          ],
+          metrics: { avgLatency: 2.1, successRate: 0.92, totalRuns: 18 }
+        },
+        {
+          id: 'demo-3',
+          name: 'Model Racing',
+          description: 'Parallel execution across multiple LLMs with result merging',
+          nodes: [
+            { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Input' } },
+            { id: 'parallel', type: 'parallel', position: { x: 250, y: 200 }, data: { label: 'Split' } },
+            { id: 'claude', type: 'agent', position: { x: 400, y: 100 }, data: { label: 'Claude', config: { model: 'anthropic/claude-3.5-sonnet' } } },
+            { id: 'gpt', type: 'agent', position: { x: 400, y: 200 }, data: { label: 'GPT-4o', config: { model: 'openai/gpt-4o' } } },
+            { id: 'gemini', type: 'agent', position: { x: 400, y: 300 }, data: { label: 'Gemini', config: { model: 'google/gemini-flash-1.5' } } },
+            { id: 'merge', type: 'merge', position: { x: 550, y: 200 }, data: { label: 'Best Result' } },
+            { id: 'output', type: 'output', position: { x: 700, y: 200 }, data: { label: 'Output' } }
+          ],
+          edges: [
+            { id: 'e1', source: 'input', target: 'parallel' },
+            { id: 'e2', source: 'parallel', target: 'claude' },
+            { id: 'e3', source: 'parallel', target: 'gpt' },
+            { id: 'e4', source: 'parallel', target: 'gemini' },
+            { id: 'e5', source: 'claude', target: 'merge' },
+            { id: 'e6', source: 'gpt', target: 'merge' },
+            { id: 'e7', source: 'gemini', target: 'merge' },
+            { id: 'e8', source: 'merge', target: 'output' }
+          ],
+          metrics: { avgLatency: 1.8, successRate: 0.98, totalRuns: 42 }
+        },
+        {
+          id: 'demo-4',
+          name: 'Tool-Augmented Agent',
+          description: 'Agent with web search and calculator tool access',
+          nodes: [
+            { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Query' } },
+            { id: 'planner', type: 'agent', position: { x: 280, y: 200 }, data: { label: 'Planner', config: { model: 'anthropic/claude-3.5-sonnet' } } },
+            { id: 'search', type: 'tool', position: { x: 460, y: 120 }, data: { label: 'Web Search', config: { endpoint: 'search' } } },
+            { id: 'calc', type: 'tool', position: { x: 460, y: 280 }, data: { label: 'Calculator', config: { endpoint: 'calc' } } },
+            { id: 'synth', type: 'agent', position: { x: 640, y: 200 }, data: { label: 'Synthesizer', config: { model: 'anthropic/claude-3.5-sonnet' } } },
+            { id: 'output', type: 'output', position: { x: 820, y: 200 }, data: { label: 'Answer' } }
+          ],
+          edges: [
+            { id: 'e1', source: 'input', target: 'planner' },
+            { id: 'e2', source: 'planner', target: 'search' },
+            { id: 'e3', source: 'planner', target: 'calc' },
+            { id: 'e4', source: 'search', target: 'synth' },
+            { id: 'e5', source: 'calc', target: 'synth' },
+            { id: 'e6', source: 'synth', target: 'output' }
+          ],
+          metrics: { avgLatency: 3.2, successRate: 0.88, totalRuns: 15 }
         }
       ]);
     } finally {
