@@ -88,6 +88,7 @@ function CustomCodeEditor({ framework, onUpdate }) {
     const runTest = () => {
         setError(null);
         try {
+            // eslint-disable-next-line no-new-func
             const fn = new Function('input', code);
             const result = fn(testInput);
             setTestOutput(typeof result === 'string' ? result : JSON.stringify(result, null, 2));
