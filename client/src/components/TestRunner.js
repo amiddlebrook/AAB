@@ -2,14 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './TestRunner.css';
 
-// Execution state icons
-const STATUS_ICONS = {
-  pending: '⏳',
-  running: '🔄',
-  completed: '✅',
-  failed: '❌'
-};
-
 function TestRunner({ framework, apiUrl }) {
   const [testInput, setTestInput] = useState('Sample test input for the framework');
   const [testResults, setTestResults] = useState([]);

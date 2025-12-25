@@ -76,6 +76,7 @@ function ABTesting({ frameworks }) {
         setResults(testResult);
         setRunHistory(prev => [testResult, ...prev.slice(0, 9)]);
         setIsRunning(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [frameworkA, frameworkB, testInput, numRuns]);
 
     // Simulate execution delay
