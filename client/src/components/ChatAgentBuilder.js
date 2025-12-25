@@ -34,7 +34,6 @@ What would you like to build today?`
         }
     ]);
     const [input, setInput] = useState('');
-    const [apiKey, setApiKey] = useState(localStorage.getItem('aab_openrouter_key') || '');
     const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0].id);
     const [loading, setLoading] = useState(false);
     const [generatedFramework, setGeneratedFramework] = useState(null);
@@ -59,8 +58,7 @@ What would you like to build today?`
         try {
             const response = await axios.post(`${apiUrl}/chat`, {
                 messages: messages.filter(m => m.role !== 'system').concat(userMessage),
-                model: selectedModel,
-                apiKey
+                model: selectedModel
             });
 
             const assistantMessage = {
@@ -261,8 +259,7 @@ It's a solid starting point for many agentic workflows.`,
         try {
             const response = await axios.post(`${apiUrl}/chat/generate`, {
                 description: input || 'A simple 2-agent sequential chain for text processing',
-                model: selectedModel,
-                apiKey
+                model: selectedModel
             });
             setGeneratedFramework(response.data.framework);
         } catch (err) {
