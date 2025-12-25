@@ -94,12 +94,12 @@
 }
 
 .delete-btn {
-  width: 20px;
+  width: 10px;
   height: 20px;
   background: transparent;
   border: none;
   color: #666;
-  font-size: 14px;
+  font-size: 10px;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.15s;

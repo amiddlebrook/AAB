@@ -70,7 +70,7 @@ body {
 
 /* Header */
 .App-header {
-  height: 40px;
+  height: 60px;
   background: var(--bg-1);
   border-bottom: 1px solid var(--border);
   padding: 0 16px;
@@ -107,7 +107,7 @@ body {
 
 /* Navigation */
 .App-nav {
-  height: 32px;
+  height: 64px;
   background: var(--bg-2);
   border-bottom: 1px solid var(--border);
   padding: 0 16px;

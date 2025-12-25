@@ -150,33 +150,8 @@ function TestRunner({ framework, apiUrl, onUpdate }) {
     };
   };
 
-  const simulateExecution = () => {
-    const nodeTimings = {};
-    const nodeOutputs = {};
-    let totalLatency = 0;
 
-    framework.nodes.forEach(node => {
-      const timing = Math.random() * 500 + 100;
-      nodeTimings[node.id] = timing;
-      nodeOutputs[node.id] = `Processed by ${node.data?.label || node.id}`;
-      totalLatency += timing;
-    });
 
-    return {
-      id: `demo-${Date.now()}`,
-      frameworkId: framework.id,
-      timestamp: new Date().toISOString(),
-      testInput,
-      status: 'completed',
-      success: true,
-      latency: totalLatency / 1000,
-      totalTokens: Math.floor(Math.random() * 500) + 100,
-      totalCost: Math.random() * 0.01,
-      output: `Demo output for: ${testInput.slice(0, 50)}...`,
-      nodeTimings,
-      nodeOutputs
-    };
-  };
 
 
 

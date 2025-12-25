@@ -71,7 +71,77 @@ What would you like to build today?`
     const generateDemoResponse = (userInput) => {
         const lower = userInput.toLowerCase();
 
-        if (lower.includes('summariz') || lower.includes('summary')) {
+        // 1. RAG / Retrieval Pattern
+        if (lower.includes('rag') || lower.includes('retriev') || lower.includes('search') || lower.includes('knowledge')) {
+            return {
+                content: `I've designed a RAG (Retrieval-Augmented Generation) pipeline for you.
+                
+**Design Pattern:**
+1. **Query Input** - Entry point
+2. **Embedder** - Converts query to vectors
+3. **Vector Search** - Retrieves relevant context
+4. **Context Fusion** - combine query + context
+5. **LLM Answer** - Generates informed response
+
+This is ideal for Q&A over documents.`,
+                framework: {
+                    name: 'RAG Knowledge System',
+                    description: 'Retrieval-augmented pipeline for grounded answers',
+                    nodes: [
+                        { id: 'in', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Query' } },
+                        { id: 'embed', type: 'processor', position: { x: 280, y: 200 }, data: { label: 'Embedder' } },
+                        { id: 'retrieve', type: 'tool', position: { x: 460, y: 150 }, data: { label: 'Vector DB', config: { tool: 'search' } } },
+                        { id: 'llm', type: 'agent', position: { x: 640, y: 200 }, data: { label: 'Answer Gen', config: { model: 'anthropic/claude-3.5-sonnet' } } },
+                        { id: 'out', type: 'output', position: { x: 820, y: 200 }, data: { label: 'Response' } }
+                    ],
+                    edges: [
+                        { id: 'e1', source: 'in', target: 'embed', type: 'smoothstep' },
+                        { id: 'e2', source: 'embed', target: 'retrieve', type: 'smoothstep' },
+                        { id: 'e3', source: 'retrieve', target: 'llm', type: 'smoothstep' },
+                        { id: 'e4', source: 'in', target: 'llm', type: 'smoothstep' },
+                        { id: 'e5', source: 'llm', target: 'out', type: 'smoothstep' }
+                    ]
+                }
+            };
+        }
+
+        // 2. Coding / Development Pattern
+        if (lower.includes('code') || lower.includes('dev') || lower.includes('review') || lower.includes('software')) {
+            return {
+                content: `Here is a robust Code Engineering Workflow.
+
+**Workflow:**
+1. **Spec Input** - Feature requirements
+2. **Architect** - Plans the implementation
+3. **Developer** - Writes the code
+4. **Reviewer** - Critiques and suggestions
+5. **Refiner** - Applies fixes
+6. **Final Output** - Production code`,
+                framework: {
+                    name: 'Code Engineering Flow',
+                    description: 'Plan -> Code -> Review -> Fix cycle',
+                    nodes: [
+                        { id: 'spec', type: 'input', position: { x: 50, y: 250 }, data: { label: 'Spec' } },
+                        { id: 'arch', type: 'agent', position: { x: 200, y: 250 }, data: { label: 'Architect', config: { model: 'anthropic/claude-3.5-sonnet' } } },
+                        { id: 'dev', type: 'agent', position: { x: 400, y: 250 }, data: { label: 'Developer', config: { model: 'anthropic/claude-3.5-sonnet' } } },
+                        { id: 'review', type: 'agent', position: { x: 400, y: 100 }, data: { label: 'Reviewer', config: { model: 'gpt-4o' } } },
+                        { id: 'fix', type: 'agent', position: { x: 600, y: 250 }, data: { label: 'Refiner', config: { model: 'anthropic/claude-3.5-sonnet' } } },
+                        { id: 'code', type: 'output', position: { x: 800, y: 250 }, data: { label: 'Final Code' } }
+                    ],
+                    edges: [
+                        { id: 'e1', source: 'spec', target: 'arch', type: 'smoothstep' },
+                        { id: 'e2', source: 'arch', target: 'dev', type: 'smoothstep' },
+                        { id: 'e3', source: 'dev', target: 'review', type: 'smoothstep' },
+                        { id: 'e4', source: 'review', target: 'fix', type: 'smoothstep' },
+                        { id: 'e5', source: 'dev', target: 'fix', type: 'smoothstep' },
+                        { id: 'e6', source: 'fix', target: 'code', type: 'smoothstep' }
+                    ]
+                }
+            };
+        }
+
+        // 3. Summarization (Existing)
+        if (lower.includes('summar') || lower.includes('digest') || lower.includes('shorten')) {
             return {
                 content: `Great! I'll create a summarization pipeline for you.
 
@@ -80,9 +150,7 @@ What would you like to build today?`
 2. **Chunker Agent** - Breaks long text into chunks
 3. **Summarizer Agent** - Summarizes each chunk
 4. **Merger Agent** - Combines chunk summaries into final summary
-5. **Output Node** - Returns the final summary
-
-Click "Use This Framework" to add it to your frameworks!`,
+5. **Output Node** - Returns the final summary`,
                 framework: {
                     name: 'Summarization Pipeline',
                     description: 'Multi-stage summarization with chunking and merging',
@@ -103,6 +171,7 @@ Click "Use This Framework" to add it to your frameworks!`,
             };
         }
 
+        // 4. Parallel / Multi-Agent (Existing)
         if (lower.includes('parallel') || lower.includes('multi') || lower.includes('debate')) {
             return {
                 content: `I'll create a parallel multi-agent architecture for you.
@@ -111,9 +180,7 @@ Click "Use This Framework" to add it to your frameworks!`,
 1. **Input Node** - Receives the query
 2. **Parallel Agents** - Multiple agents process simultaneously
 3. **Merger** - Combines results using voting/consensus
-4. **Output Node** - Returns the final result
-
-Click "Use This Framework" to add it!`,
+4. **Output Node** - Returns the final result`,
                 framework: {
                     name: 'Parallel Multi-Agent System',
                     description: 'Multiple agents process in parallel, results merged',
@@ -138,17 +205,33 @@ Click "Use This Framework" to add it!`,
             };
         }
 
+        // 5. Fallback
         return {
-            content: `I understand you want to build something. Could you give me more details about:
+            content: `I've created a versatile **General Purpose Logic Chain** for your request ("${userInput}").
 
-1. **Input type** - What kind of data will flow in?
-2. **Processing steps** - What should happen to the data?
-3. **Output** - What should the final result look like?
+This architecture includes:
+- **Planner**: Deconstructs the user request
+- **Executor**: Performs the core task
+- **Critic**: Validates the output
 
-Or try one of these examples:
-- "Create a 3-stage summarization pipeline"
-- "Build a parallel debate system with 3 agents"
-- "Make a code review workflow"`
+It's a solid starting point for many agentic workflows.`,
+            framework: {
+                name: 'General Purpose Agent Chain',
+                description: 'Planner -> Executor -> Critic pattern',
+                nodes: [
+                    { id: 'in', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Request' } },
+                    { id: 'plan', type: 'agent', position: { x: 280, y: 200 }, data: { label: 'Planner', config: { model: 'meta-llama/llama-3.2-90b-vision-instruct:free' } } },
+                    { id: 'exec', type: 'agent', position: { x: 460, y: 200 }, data: { label: 'Executor', config: { model: 'anthropic/claude-3.5-sonnet' } } },
+                    { id: 'crit', type: 'agent', position: { x: 640, y: 200 }, data: { label: 'Critic', config: { model: 'openai/gpt-4o' } } },
+                    { id: 'out', type: 'output', position: { x: 820, y: 200 }, data: { label: 'Result' } }
+                ],
+                edges: [
+                    { id: 'e1', source: 'in', target: 'plan', type: 'smoothstep' },
+                    { id: 'e2', source: 'plan', target: 'exec', type: 'smoothstep' },
+                    { id: 'e3', source: 'exec', target: 'crit', type: 'smoothstep' },
+                    { id: 'e4', source: 'crit', target: 'out', type: 'smoothstep' }
+                ]
+            }
         };
     };
 

@@ -86,6 +86,59 @@ for (const [key, regex] of Object.entries(patterns)) {
   if (matches) extracted[key] = matches;
 }
 return JSON.stringify(extracted, null, 2);`
+    },
+    sentiment: {
+        name: 'Sentiment Heuristic',
+        description: 'Basic sentiment analysis',
+        code: `// Basic sentiment heuristic
+const lower = input.toLowerCase();
+const positive = ['good', 'great', 'awesome', 'excellent', 'happy'];
+const negative = ['bad', 'terrible', 'awful', 'poor', 'sad'];
+
+let score = 0;
+positive.forEach(w => { if (lower.includes(w)) score++; });
+negative.forEach(w => { if (lower.includes(w)) score--; });
+
+return JSON.stringify({
+  score,
+  sentiment: score > 0 ? 'positive' : (score < 0 ? 'negative' : 'neutral'),
+  text: input
+});`
+    },
+    normalize: {
+        name: 'Data Normalizer',
+        description: 'Clean and normalize text',
+        code: `// Normalize text input
+const clean = input
+  .trim()
+  .replace(/\\s+/g, ' ')           // condense whitespace
+  .replace(/[^\x20-\x7E]/g, '')  // remove non-printable
+  .toLowerCase();
+
+return clean;`
+    },
+    retry: {
+        name: 'Retry Wrapper',
+        description: 'Mock retry logic structure',
+        code: `// Structure for retry logic
+// Note: Actual retries handled by execution engine
+// This prepares the state
+
+const state = input.state || { attempts: 0, data: input.data };
+
+if (state.attempts < 3) {
+  // Simulate processing condition
+  return { 
+    action: 'process', 
+    attempts: state.attempts + 1,
+    data: state.data 
+  };
+} else {
+  return { 
+    action: 'fail', 
+    error: 'Max attempts reached' 
+  };
+}`
     }
 };
 
