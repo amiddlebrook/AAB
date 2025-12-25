@@ -150,7 +150,7 @@ Use appropriate node types and connect them logically.`;
             ],
             activeApiKey,
             {
-                model: 'meta-llama/llama-3.3-70b-instruct:free',
+                model: body.model || 'meta-llama/llama-3.3-70b-instruct',
                 temperature: 0.5,
                 maxTokens: 2048
             }
