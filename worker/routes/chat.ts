@@ -56,6 +56,12 @@ chatRoutes.post('/', async (c) => {
         ...messages
     ];
 
+    // Check for API key
+    if (!c.env.AAB_OPENROUTER_API_KEY) {
+        console.error('Missing AAB_OPENROUTER_API_KEY');
+        return c.json({ error: 'Missing API Key: AAB_OPENROUTER_API_KEY is not set in worker environment.' }, 500);
+    }
+
     // If user wants to generate a framework, add instruction
     if (generateFramework) {
         fullMessages.push({
@@ -107,6 +113,12 @@ chatRoutes.post('/generate', async (c) => {
 
     if (!description) {
         return c.json({ error: 'Description required' }, 400);
+    }
+
+    // Check for API key
+    if (!c.env.AAB_OPENROUTER_API_KEY) {
+        console.error('Missing AAB_OPENROUTER_API_KEY');
+        return c.json({ error: 'Missing API Key: AAB_OPENROUTER_API_KEY is not set in worker environment.' }, 500);
     }
 
     const prompt = `Generate a framework for the following description:
