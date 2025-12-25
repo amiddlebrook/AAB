@@ -34,6 +34,7 @@ What would you like to build today?`
         }
     ]);
     const [input, setInput] = useState('');
+    const [apiKey, setApiKey] = useState(localStorage.getItem('aab_openrouter_key') || '');
     const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0].id);
     const [loading, setLoading] = useState(false);
     const [generatedFramework, setGeneratedFramework] = useState(null);
@@ -58,7 +59,8 @@ What would you like to build today?`
         try {
             const response = await axios.post(`${apiUrl}/chat`, {
                 messages: messages.filter(m => m.role !== 'system').concat(userMessage),
-                model: selectedModel
+                model: selectedModel,
+                apiKey
             });
 
             const assistantMessage = {
@@ -259,7 +261,8 @@ It's a solid starting point for many agentic workflows.`,
         try {
             const response = await axios.post(`${apiUrl}/chat/generate`, {
                 description: input || 'A simple 2-agent sequential chain for text processing',
-                model: selectedModel
+                model: selectedModel,
+                apiKey
             });
             setGeneratedFramework(response.data.framework);
         } catch (err) {
@@ -303,6 +306,17 @@ It's a solid starting point for many agentic workflows.`,
                             <option key={m.id} value={m.id}>{m.name}</option>
                         ))}
                     </select>
+                    <input
+                        type="password"
+                        placeholder="API Key (Optional)"
+                        title="Enter OpenRouter API Key to override backend secret"
+                        value={apiKey}
+                        onChange={(e) => {
+                            setApiKey(e.target.value);
+                            localStorage.setItem('aab_openrouter_key', e.target.value);
+                        }}
+                        className="api-key-input"
+                    />
                 </div>
                 <p>Describe what you want to build in natural language</p>
             </div>

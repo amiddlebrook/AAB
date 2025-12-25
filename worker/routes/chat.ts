@@ -44,10 +44,19 @@ Be creative. Impress the user with your architectural insight.`;
 // Chat with the builder agent
 chatRoutes.post('/', async (c) => {
     const body = await c.req.json();
-    const { messages, generateFramework, model } = body;
+    const { messages, generateFramework, model, apiKey } = body;
 
     if (!messages || !Array.isArray(messages)) {
         return c.json({ error: 'Messages array required' }, 400);
+    }
+
+    // Determine API Key (Client override -> AAB Secret -> Standard Secret)
+    const activeApiKey = apiKey || c.env.AAB_OPENROUTER_API_KEY || c.env.OPENROUTER_API_KEY;
+
+    // Check for API key
+    if (!activeApiKey) {
+        console.error('Missing API Key');
+        return c.json({ error: 'Missing API Key: Set AAB_OPENROUTER_API_KEY in backend or provide key in frontend settings.' }, 500);
     }
 
     // Add system prompt
@@ -55,12 +64,6 @@ chatRoutes.post('/', async (c) => {
         { role: 'system', content: SYSTEM_PROMPT },
         ...messages
     ];
-
-    // Check for API key
-    if (!c.env.AAB_OPENROUTER_API_KEY) {
-        console.error('Missing AAB_OPENROUTER_API_KEY');
-        return c.json({ error: 'Missing API Key: AAB_OPENROUTER_API_KEY is not set in worker environment.' }, 500);
-    }
 
     // If user wants to generate a framework, add instruction
     if (generateFramework) {
@@ -73,7 +76,7 @@ chatRoutes.post('/', async (c) => {
     try {
         const response = await callOpenRouter(
             fullMessages,
-            c.env.AAB_OPENROUTER_API_KEY,
+            activeApiKey,
             {
                 model: model || 'meta-llama/llama-3.3-70b-instruct:free',
                 temperature: 0.7,

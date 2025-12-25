@@ -9,6 +9,7 @@ export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
   AAB_OPENROUTER_API_KEY: string;
+  OPENROUTER_API_KEY?: string;
   ENVIRONMENT: string;
 }
 
