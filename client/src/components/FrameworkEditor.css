@@ -1,141 +1,349 @@
 .framework-editor {
-  display: flex;
+  display: grid;
+  grid-template-columns: 320px 1fr;
   height: calc(100vh - 200px);
-  background: white;
-  border-radius: 10px;
+  background: #0d1117;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .editor-sidebar {
-  width: 300px;
-  padding: 20px;
-  background: #f5f5f5;
+  background: rgba(0, 0, 0, 0.3);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.25rem;
   overflow-y: auto;
-  border-right: 2px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.editor-sidebar h2 {
-  margin-top: 0;
-  color: #667eea;
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  color: #58a6ff;
+  font-size: 1.1rem;
+}
+
+.save-status {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.save-status.saved {
+  color: #3fb950;
+  background: rgba(46, 160, 67, 0.15);
+}
+
+.save-status.unsaved {
+  color: #ffa657;
+  background: rgba(255, 152, 0, 0.15);
 }
 
 .editor-section {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .editor-section label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #333;
+  color: #8b949e;
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
-.editor-section input,
+.editor-section input[type="text"],
 .editor-section textarea,
 .editor-section select {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 0.9em;
-  box-sizing: border-box;
+  padding: 0.6rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: #c9d1d9;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.editor-section input:focus,
+.editor-section textarea:focus,
+.editor-section select:focus {
+  outline: none;
+  border-color: #58a6ff;
 }
 
 .editor-section textarea {
   resize: vertical;
+  min-height: 60px;
 }
 
-.node-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.node-buttons button {
-  padding: 10px;
-  border: none;
-  color: white;
-  cursor: pointer;
-  border-radius: 5px;
-  font-weight: bold;
-  transition: all 0.3s;
-}
-
-.node-buttons button:hover {
-  opacity: 0.8;
-  transform: translateX(5px);
-}
-
-.node-editor {
-  background: white;
-  padding: 15px;
-  border-radius: 5px;
-  border: 2px solid #667eea;
-}
-
-.node-editor h3 {
-  margin-top: 0;
-  color: #667eea;
-}
-
-.node-editor input[type="range"] {
-  width: calc(100% - 40px);
-}
-
-.node-editor span {
-  margin-left: 10px;
-  font-weight: bold;
-  color: #667eea;
-}
-
-.delete-node-btn {
+.editor-section input[type="range"] {
   width: 100%;
-  padding: 10px;
-  background: #f44336;
-  color: white;
-  border: none;
-  border-radius: 5px;
+  accent-color: #58a6ff;
+}
+
+/* Node Palette */
+.node-palette {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+}
+
+.palette-node {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: #c9d1d9;
   cursor: pointer;
-  margin-top: 10px;
-  font-weight: bold;
+  transition: all 0.15s;
+  font-size: 0.8rem;
 }
 
-.delete-node-btn:hover {
-  background: #d32f2f;
+.palette-node:hover {
+  background: color-mix(in srgb, var(--node-color) 20%, transparent);
+  border-color: var(--node-color);
+  transform: translateY(-1px);
 }
 
+.palette-node .node-icon {
+  font-size: 1rem;
+}
+
+.palette-node .node-name {
+  flex: 1;
+}
+
+/* Node Editor Panel */
+.node-editor {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.node-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.node-editor-header h3 {
+  margin: 0;
+  color: #c9d1d9;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #8b949e;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: #c9d1d9;
+}
+
+.node-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.action-btn,
+.delete-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+}
+
+.action-btn {
+  background: rgba(88, 166, 255, 0.15);
+  color: #58a6ff;
+}
+
+.action-btn:hover {
+  background: rgba(88, 166, 255, 0.25);
+}
+
+.delete-btn {
+  background: rgba(248, 81, 73, 0.15);
+  color: #f85149;
+}
+
+.delete-btn:hover {
+  background: rgba(248, 81, 73, 0.25);
+}
+
+/* Save Button */
 .save-btn {
   width: 100%;
-  padding: 15px;
-  background: #4CAF50;
-  color: white;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #238636, #2ea043);
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 1.1em;
-  font-weight: bold;
-  transition: all 0.3s;
+  transition: all 0.15s;
 }
 
 .save-btn:hover {
-  background: #45a049;
+  background: linear-gradient(135deg, #2ea043, #3fb950);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 160, 67, 0.3);
+}
+
+.save-btn.saved {
+  background: rgba(46, 160, 67, 0.2);
+  color: #3fb950;
+}
+
+/* Stats */
+.editor-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-value {
+  color: #58a6ff;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.stat-label {
+  color: #8b949e;
+  font-size: 0.75rem;
+}
+
+/* Canvas */
+.editor-canvas {
+  background: #0d1117;
+}
+
+.editor-canvas .react-flow__minimap {
+  background: #161b22;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.editor-canvas .react-flow__controls {
+  background: #161b22;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.editor-canvas .react-flow__controls-button {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.1);
+  fill: #8b949e;
+}
+
+.editor-canvas .react-flow__controls-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Nodes */
+.custom-node {
+  background: linear-gradient(135deg, #161b22, #21262d);
+  border: 2px solid var(--node-color);
+  border-radius: 8px;
+  padding: 0;
+  min-width: 140px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s;
+}
+
+.custom-node:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--node-color);
   transform: translateY(-2px);
 }
 
-.editor-stats {
-  margin-top: 20px;
-  padding: 15px;
-  background: white;
-  border-radius: 5px;
+.custom-node .react-flow__handle {
+  width: 10px;
+  height: 10px;
+  background: var(--node-color);
+  border: 2px solid #0d1117;
 }
 
-.editor-stats p {
-  margin: 5px 0;
-  color: #666;
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--node-color) 30%, transparent), transparent);
+  border-radius: 6px 6px 0 0;
 }
 
-.editor-canvas {
-  flex: 1;
-  background: #fafafa;
+.node-header .node-icon {
+  font-size: 1rem;
+}
+
+.node-header .node-label {
+  color: #c9d1d9;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.node-model {
+  padding: 0.3rem 0.75rem;
+  color: #8b949e;
+  font-size: 0.7rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.node-temp {
+  padding: 0.3rem 0.75rem;
+  color: #58a6ff;
+  font-size: 0.7rem;
+  font-family: monospace;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .framework-editor {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .editor-sidebar {
+    max-height: 300px;
+  }
+
+  .node-palette {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }

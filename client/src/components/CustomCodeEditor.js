@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Editor from '@monaco-editor/react';
 import './CustomCodeEditor.css';
 
 // Templates for common node patterns
@@ -42,51 +43,113 @@ const parts = input.split('\\n---\\n');
 const merged = parts.join('\\n\\n');
 return merged;`
     },
-    filter: {
-        name: 'Filter',
-        description: 'Filter content based on condition',
-        code: `// Filter content
-const lines = input.split('\\n');
-const filtered = lines.filter(line => line.trim().length > 0);
-return filtered.join('\\n');`
+    llmPrompt: {
+        name: 'LLM Prompt Builder',
+        description: 'Build a structured prompt',
+        code: `// Build structured LLM prompt
+const systemPrompt = "You are a helpful assistant.";
+const userContent = input;
+
+return JSON.stringify({
+  system: systemPrompt,
+  user: userContent,
+  format: "markdown"
+});`
+    },
+    router: {
+        name: 'Router',
+        description: 'Route based on content analysis',
+        code: `// Route based on input content
+const lower = input.toLowerCase();
+
+if (lower.includes('urgent') || lower.includes('critical')) {
+  return { route: 'high_priority', data: input };
+}
+if (lower.includes('question') || lower.includes('?')) {
+  return { route: 'qa', data: input };
+}
+return { route: 'default', data: input };`
     },
     extract: {
-        name: 'Extract',
-        description: 'Extract specific information',
-        code: `// Extract key information
-const match = input.match(/key: (.+)/i);
-return match ? match[1] : 'Not found';`
-    },
-    conditional: {
-        name: 'Conditional',
-        description: 'Route based on condition',
-        code: `// Conditional routing
-if (input.length > 100) {
-  return { route: 'long', data: input };
+        name: 'Data Extractor',
+        description: 'Extract structured data',
+        code: `// Extract structured data from text
+const patterns = {
+  email: /[\\w.-]+@[\\w.-]+\\.\\w+/g,
+  phone: /\\d{3}[-.]?\\d{3}[-.]?\\d{4}/g,
+  url: /https?:\\/\\/[^\\s]+/g
+};
+
+const extracted = {};
+for (const [key, regex] of Object.entries(patterns)) {
+  const matches = input.match(regex);
+  if (matches) extracted[key] = matches;
 }
-return { route: 'short', data: input };`
+return JSON.stringify(extracted, null, 2);`
     }
 };
 
-function CustomCodeEditor({ framework, onUpdate }) {
+// Custom completions for the code editor
+const CUSTOM_COMPLETIONS = [
+    { label: 'input', kind: 'Variable', detail: 'The input data from previous nodes' },
+    { label: 'JSON.parse(input)', kind: 'Function', detail: 'Parse JSON input' },
+    { label: 'JSON.stringify(data, null, 2)', kind: 'Function', detail: 'Format as JSON' },
+    { label: 'return', kind: 'Keyword', detail: 'Return processed data' },
+    { label: 'input.split("\\n")', kind: 'Method', detail: 'Split by newlines' },
+    { label: 'input.toLowerCase()', kind: 'Method', detail: 'Convert to lowercase' },
+    { label: 'input.match(/pattern/g)', kind: 'Method', detail: 'Match regex pattern' },
+];
+
+function CustomCodeEditor({ framework, onUpdate, apiUrl }) {
     const [selectedNodeId, setSelectedNodeId] = useState(null);
     const [code, setCode] = useState('');
     const [testInput, setTestInput] = useState('Hello World');
     const [testOutput, setTestOutput] = useState('');
     const [error, setError] = useState(null);
     const [showTemplates, setShowTemplates] = useState(false);
+    const [isRunning, setIsRunning] = useState(false);
+    const [saved, setSaved] = useState(true);
+    const editorRef = useRef(null);
 
     useEffect(() => {
         if (selectedNodeId && framework) {
             const node = framework.nodes?.find(n => n.id === selectedNodeId);
             if (node) {
                 setCode(node.data?.customCode || 'return input;');
+                setSaved(true);
             }
         }
     }, [selectedNodeId, framework]);
 
-    const runTest = () => {
+    const handleEditorMount = (editor, monaco) => {
+        editorRef.current = editor;
+
+        // Register custom completions
+        monaco.languages.registerCompletionItemProvider('javascript', {
+            provideCompletionItems: () => ({
+                suggestions: CUSTOM_COMPLETIONS.map(item => ({
+                    label: item.label,
+                    kind: monaco.languages.CompletionItemKind[item.kind],
+                    insertText: item.label,
+                    detail: item.detail,
+                }))
+            })
+        });
+
+        // Add keyboard shortcut for save
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+            saveCode();
+        });
+
+        // Add keyboard shortcut for run test
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+            runTest();
+        });
+    };
+
+    const runTest = async () => {
         setError(null);
+        setIsRunning(true);
         try {
             // eslint-disable-next-line no-new-func
             const fn = new Function('input', code);
@@ -95,6 +158,8 @@ function CustomCodeEditor({ framework, onUpdate }) {
         } catch (e) {
             setError(e.message);
             setTestOutput('');
+        } finally {
+            setIsRunning(false);
         }
     };
 
@@ -115,29 +180,42 @@ function CustomCodeEditor({ framework, onUpdate }) {
         });
 
         onUpdate(framework.id, { ...framework, nodes: updatedNodes });
+        setSaved(true);
+    };
+
+    const handleCodeChange = (value) => {
+        setCode(value);
+        setSaved(false);
     };
 
     const applyTemplate = (templateKey) => {
         setCode(CODE_TEMPLATES[templateKey].code);
+        setSaved(false);
         setShowTemplates(false);
+    };
+
+    const formatCode = () => {
+        if (editorRef.current) {
+            editorRef.current.getAction('editor.action.formatDocument').run();
+        }
     };
 
     const nodes = framework?.nodes || [];
     const customizableNodes = nodes.filter(n =>
-        n.type === 'processor' || n.type === 'custom' || n.type === 'default'
+        n.type === 'processor' || n.type === 'custom' || n.type === 'default' || n.type === 'agent'
     );
 
     return (
         <div className="code-editor">
             <div className="editor-sidebar">
-                <h2>💻 Custom Code Editor</h2>
-                <p>Write custom logic for processor nodes</p>
+                <h2>💻 Code Editor</h2>
+                <p>Professional JavaScript editing</p>
 
                 <div className="node-selector">
-                    <h3>Select Node</h3>
+                    <h3>📌 Select Node</h3>
                     {customizableNodes.length === 0 ? (
                         <p className="no-nodes">
-                            No customizable nodes found. Add a Processor or Custom node to your framework.
+                            No customizable nodes found. Add a Processor or Agent node to your framework.
                         </p>
                     ) : (
                         <div className="node-list">
@@ -147,8 +225,11 @@ function CustomCodeEditor({ framework, onUpdate }) {
                                     className={`node-item ${selectedNodeId === node.id ? 'active' : ''}`}
                                     onClick={() => setSelectedNodeId(node.id)}
                                 >
-                                    <span className="node-icon">⚙️</span>
+                                    <span className="node-icon">
+                                        {node.type === 'agent' ? '🤖' : '⚙️'}
+                                    </span>
                                     <span className="node-label">{node.data?.label || node.id}</span>
+                                    <span className="node-type">{node.type}</span>
                                 </button>
                             ))}
                         </div>
@@ -178,6 +259,16 @@ function CustomCodeEditor({ framework, onUpdate }) {
                         </div>
                     )}
                 </div>
+
+                <div className="shortcuts-section">
+                    <h3>⌨️ Shortcuts</h3>
+                    <div className="shortcut-list">
+                        <div className="shortcut"><kbd>Ctrl+S</kbd> Save</div>
+                        <div className="shortcut"><kbd>Ctrl+Enter</kbd> Run Test</div>
+                        <div className="shortcut"><kbd>Ctrl+Z</kbd> Undo</div>
+                        <div className="shortcut"><kbd>Ctrl+Space</kbd> Autocomplete</div>
+                    </div>
+                </div>
             </div>
 
             <div className="editor-main">
@@ -185,41 +276,84 @@ function CustomCodeEditor({ framework, onUpdate }) {
                     <>
                         <div className="code-section">
                             <div className="code-header">
-                                <h3>Code for: {nodes.find(n => n.id === selectedNodeId)?.data?.label || selectedNodeId}</h3>
-                                <button className="save-btn" onClick={saveCode}>💾 Save</button>
+                                <div className="header-left">
+                                    <h3>
+                                        {nodes.find(n => n.id === selectedNodeId)?.data?.label || selectedNodeId}
+                                        {!saved && <span className="unsaved-indicator">●</span>}
+                                    </h3>
+                                </div>
+                                <div className="header-actions">
+                                    <button className="action-btn" onClick={formatCode} title="Format Code">
+                                        🎨 Format
+                                    </button>
+                                    <button
+                                        className={`action-btn save-btn ${saved ? 'saved' : ''}`}
+                                        onClick={saveCode}
+                                    >
+                                        {saved ? '✓ Saved' : '💾 Save'}
+                                    </button>
+                                </div>
                             </div>
-                            <textarea
-                                className="code-textarea"
-                                value={code}
-                                onChange={(e) => setCode(e.target.value)}
-                                placeholder="Write your JavaScript code here...
-                
-The 'input' variable contains the data from previous nodes.
-Return the processed data."
-                                spellCheck={false}
-                            />
+                            <div className="monaco-wrapper">
+                                <Editor
+                                    height="100%"
+                                    defaultLanguage="javascript"
+                                    value={code}
+                                    onChange={handleCodeChange}
+                                    onMount={handleEditorMount}
+                                    theme="vs-dark"
+                                    options={{
+                                        minimap: { enabled: true, scale: 0.8 },
+                                        fontSize: 14,
+                                        lineNumbers: 'on',
+                                        scrollBeyondLastLine: false,
+                                        automaticLayout: true,
+                                        tabSize: 2,
+                                        wordWrap: 'on',
+                                        suggestOnTriggerCharacters: true,
+                                        quickSuggestions: true,
+                                        folding: true,
+                                        bracketPairColorization: { enabled: true },
+                                        renderLineHighlight: 'all',
+                                        cursorBlinking: 'smooth',
+                                        smoothScrolling: true,
+                                        padding: { top: 10 }
+                                    }}
+                                />
+                            </div>
                         </div>
 
                         <div className="test-section">
-                            <h3>Test Your Code</h3>
+                            <div className="test-header">
+                                <h3>🧪 Test Console</h3>
+                                <button
+                                    className={`run-btn ${isRunning ? 'running' : ''}`}
+                                    onClick={runTest}
+                                    disabled={isRunning}
+                                >
+                                    {isRunning ? '⏳ Running...' : '▶️ Run Test'}
+                                </button>
+                            </div>
                             <div className="test-grid">
                                 <div className="test-input">
-                                    <label>Test Input:</label>
+                                    <label>Input:</label>
                                     <textarea
                                         value={testInput}
                                         onChange={(e) => setTestInput(e.target.value)}
                                         placeholder="Enter test input..."
                                     />
                                 </div>
-                                <div className="test-controls">
-                                    <button onClick={runTest}>▶️ Run Test</button>
-                                </div>
                                 <div className="test-output">
                                     <label>Output:</label>
                                     {error ? (
-                                        <div className="error-output">{error}</div>
+                                        <div className="error-output">
+                                            <span className="error-icon">❌</span>
+                                            {error}
+                                        </div>
                                     ) : (
-                                        <pre>{testOutput || 'Run a test to see output'}</pre>
+                                        <pre className={testOutput ? 'has-output' : ''}>
+                                            {testOutput || 'Run a test to see output'}
+                                        </pre>
                                     )}
                                 </div>
                             </div>
@@ -228,12 +362,22 @@ Return the processed data."
                 ) : (
                     <div className="no-selection">
                         <div className="no-selection-content">
-                            <span className="big-icon">👈</span>
-                            <h3>Select a Node</h3>
-                            <p>Choose a processor or custom node from the sidebar to edit its code.</p>
+                            <span className="big-icon">📝</span>
+                            <h3>Select a Node to Edit</h3>
+                            <p>Choose a processor or agent node from the sidebar to customize its behavior with JavaScript.</p>
                             {!framework && (
                                 <p className="hint">First, select a framework from the Frameworks tab.</p>
                             )}
+                            <div className="features-preview">
+                                <h4>Editor Features:</h4>
+                                <ul>
+                                    <li>✨ Syntax highlighting</li>
+                                    <li>🔍 IntelliSense autocomplete</li>
+                                    <li>🗺️ Code minimap</li>
+                                    <li>🎨 Code formatting</li>
+                                    <li>⌨️ Keyboard shortcuts</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 )}
