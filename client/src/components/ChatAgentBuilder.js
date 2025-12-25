@@ -306,17 +306,6 @@ It's a solid starting point for many agentic workflows.`,
                             <option key={m.id} value={m.id}>{m.name}</option>
                         ))}
                     </select>
-                    <input
-                        type="password"
-                        placeholder="API Key (Optional)"
-                        title="Enter OpenRouter API Key to override backend secret"
-                        value={apiKey}
-                        onChange={(e) => {
-                            setApiKey(e.target.value);
-                            localStorage.setItem('aab_openrouter_key', e.target.value);
-                        }}
-                        className="api-key-input"
-                    />
                 </div>
                 <p>Describe what you want to build in natural language</p>
             </div>
