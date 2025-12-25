@@ -3,24 +3,18 @@ main = "worker/index.ts"
 compatibility_date = "2024-12-25"
 compatibility_flags = ["nodejs_compat"]
 
-# Cloudflare Pages will serve the React build
-# Workers will handle API routes
-
 [vars]
 ENVIRONMENT = "production"
 
+# D1 Database
 [[d1_databases]]
 binding = "DB"
 database_name = "aab-db"
-database_id = "" # Run: npx wrangler d1 create aab-db
-
-[[kv_namespaces]]
-binding = "CACHE"
-id = "" # Run: npx wrangler kv:namespace create CACHE
+database_id = "98cf5a19-acda-4048-8b3e-77109b16cec5"
 
 # Static assets from React build
-[site]
-bucket = "./client/build"
+[assets]
+directory = "./client/build"
 
 [build]
 command = "cd client && npm install && npm run build"
