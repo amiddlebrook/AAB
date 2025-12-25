@@ -12,6 +12,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './FrameworkEditor.css';
+import { AVAILABLE_MODELS } from '../constants/models';
 
 // Node type definitions
 const NODE_TYPES_CONFIG = {
@@ -80,15 +81,8 @@ const NODE_TYPES_CONFIG = {
 };
 
 // OpenRouter FREE models only
-const MODELS = [
-  { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B', provider: 'Meta' },
-  { id: 'google/gemini-2.5-pro-exp-03-25:free', name: 'Gemini 2.5 Pro', provider: 'Google' },
-  { id: 'deepseek/deepseek-chat-v3-0324:free', name: 'DeepSeek Chat V3', provider: 'DeepSeek' },
-  { id: 'deepseek/deepseek-r1-zero:free', name: 'DeepSeek R1 Zero', provider: 'DeepSeek' },
-  { id: 'mistralai/mistral-small-3.1-24b-instruct:free', name: 'Mistral Small 24B', provider: 'Mistral' },
-  { id: 'nvidia/llama-3.1-nemotron-nano-8b-v1:free', name: 'Nemotron Nano 8B', provider: 'NVIDIA' },
-  { id: 'qwen/qwen3-coder-480b-a35b:free', name: 'Qwen3 Coder 480B', provider: 'Qwen' },
-];
+// OpenRouter FREE models only
+// Imported from constants/models.js
 
 // Custom Node Component
 function CustomNode({ data, type }) {
@@ -103,7 +97,7 @@ function CustomNode({ data, type }) {
       </div>
       {data.config?.model && (
         <div className="node-model">
-          {MODELS.find(m => m.id === data.config.model)?.name || data.config.model}
+          {AVAILABLE_MODELS.find(m => m.id === data.config.model)?.name || data.config.model}
         </div>
       )}
       {data.config?.temperature !== undefined && (
@@ -302,9 +296,9 @@ function FrameworkEditor({ framework, onUpdate }) {
                     config: { ...selectedNode.data.config, model: e.target.value }
                   })}
                 >
-                  {MODELS.map(model => (
+                  {AVAILABLE_MODELS.map(model => (
                     <option key={model.id} value={model.id}>
-                      {model.name} ({model.provider})
+                      {model.name}
                     </option>
                   ))}
                 </select>
