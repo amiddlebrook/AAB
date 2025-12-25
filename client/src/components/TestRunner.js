@@ -175,45 +175,70 @@ function TestRunner({ framework, apiUrl }) {
 
   return (
     <div className="test-runner">
-      <div className="runner-left">
-        <div className="input-panel">
-          <h2>▶️ Test Runner</h2>
-          <p className="subtitle">Test: {framework.name}</p>
+      <div className="test-sidebar">
+        <div className="sidebar-header">
+          <h2>Test Execution</h2>
+          <span className="subtitle">{framework.name}</span>
+        </div>
 
-          <div className="test-input-section">
-            <label>Test Input</label>
-            <textarea
-              value={testInput}
-              onChange={(e) => setTestInput(e.target.value)}
-              placeholder="Enter test input..."
-              rows={4}
-            />
-          </div>
-
+        <div className="test-control-panel">
+          <label>Test Input</label>
+          <textarea
+            value={testInput}
+            onChange={(e) => setTestInput(e.target.value)}
+            placeholder="Enter test input..."
+            rows={5}
+            disabled={loading}
+          />
           <button
             className={`run-btn ${loading ? 'running' : ''}`}
             onClick={runTest}
             disabled={loading}
           >
-            {loading ? '⏳ Running...' : '▶️ Run Execution'}
+            {loading ? 'Running...' : 'Run Test'}
           </button>
         </div>
 
-        {/* Execution Visualization */}
-        <div className="execution-panel">
-          <h3>🔄 Execution Flow</h3>
+        <div className="history-panel">
+          <h3>History ({testResults.length})</h3>
+          <div className="history-list">
+            {testResults.slice(0, 50).map((result) => (
+              <div
+                key={result.id}
+                className={`history-item ${latestResult?.id === result.id ? 'active' : ''}`}
+                onClick={() => setLatestResult(result)}
+              >
+                <div className={`status-indicator ${result.success ? 'success' : 'failure'}`} />
+                <div className="history-info">
+                  <span className="history-time">{new Date(result.timestamp).toLocaleTimeString()}</span>
+                  <span className="history-meta">{result.latency?.toFixed(2)}s • {result.totalTokens} tks</span>
+                </div>
+              </div>
+            ))}
+            {testResults.length === 0 && (
+              <div className="empty-history">No runs recorded</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="test-main-content">
+        <div className="execution-monitor">
+          <div className="monitor-header">
+            <h3>Execution Trace</h3>
+            {executionState && Object.values(executionState).some(s => s === 'running') && (
+              <span className="live-badge">LIVE</span>
+            )}
+          </div>
+
           <div className="execution-nodes">
-            {framework.nodes.map((node, idx) => (
+            {framework.nodes.map((node) => (
               <div
                 key={node.id}
                 className={`execution-node ${executionState[node.id] || 'idle'}`}
               >
-                <span className="node-status">
-                  {executionState[node.id] === 'running' && '🔄'}
-                  {executionState[node.id] === 'completed' && '✅'}
-                  {executionState[node.id] === 'pending' && '⏳'}
-                  {!executionState[node.id] && '⬡'}
-                </span>
+                <div className="node-status-bar" />
+                <span className="node-type">{node.type}</span>
                 <span className="node-label">{node.data?.label || node.id}</span>
                 {latestResult?.nodeTimings?.[node.id] && (
                   <span className="node-timing">
@@ -223,85 +248,52 @@ function TestRunner({ framework, apiUrl }) {
               </div>
             ))}
           </div>
+
+          {streamOutput && (
+            <div className="stream-panel">
+              <div className="stream-header">System Log</div>
+              <pre ref={outputRef} className="stream-output">{streamOutput}</pre>
+            </div>
+          )}
         </div>
 
-        {/* Streaming Output */}
-        {streamOutput && (
-          <div className="stream-panel">
-            <h3>📜 Execution Log</h3>
-            <pre ref={outputRef} className="stream-output">{streamOutput}</pre>
-          </div>
-        )}
-      </div>
-
-      <div className="runner-right">
-        {/* Latest Result */}
         {latestResult && (
-          <div className={`result-panel ${latestResult.success ? 'success' : 'failure'}`}>
-            <h3>📊 Latest Result</h3>
+          <div className="result-panel">
+            <div className="result-header">
+              <h3>Run Results</h3>
+              <span className={`result-badge ${latestResult.success ? 'success' : 'failure'}`}>
+                {latestResult.success ? 'SUCCESS' : 'FAILED'}
+              </span>
+            </div>
+
             <div className="result-metrics">
-              <div className="result-metric">
-                <span className="metric-value">{latestResult.success ? '✅' : '❌'}</span>
-                <span className="metric-label">Status</span>
+              <div className="metric-box">
+                <span className="label">Latency</span>
+                <span className="value">{latestResult.latency?.toFixed(2)}s</span>
               </div>
-              <div className="result-metric">
-                <span className="metric-value">{latestResult.latency?.toFixed(2)}s</span>
-                <span className="metric-label">Latency</span>
+              <div className="metric-box">
+                <span className="label">Tokens</span>
+                <span className="value">{latestResult.totalTokens || 0}</span>
               </div>
-              <div className="result-metric">
-                <span className="metric-value">{latestResult.totalTokens || 0}</span>
-                <span className="metric-label">Tokens</span>
-              </div>
-              <div className="result-metric">
-                <span className="metric-value">${(latestResult.totalCost || 0).toFixed(4)}</span>
-                <span className="metric-label">Cost</span>
+              <div className="metric-box">
+                <span className="label">Cost</span>
+                <span className="value">${(latestResult.totalCost || 0).toFixed(4)}</span>
               </div>
             </div>
 
-            <div className="result-output">
-              <label>Output:</label>
-              <pre>{latestResult.output}</pre>
+            <div className="result-details">
+              <label>Output</label>
+              <pre className="output-display">{latestResult.output}</pre>
             </div>
-
-            {latestResult.nodeTimings && Object.keys(latestResult.nodeTimings).length > 0 && (
-              <div className="node-breakdown">
-                <label>Node Breakdown:</label>
-                {Object.entries(latestResult.nodeTimings).map(([nodeId, timing]) => (
-                  <div key={nodeId} className="node-row">
-                    <span className="node-name">{getNodeLabel(nodeId)}</span>
-                    <div className="timing-bar">
-                      <div
-                        className="timing-fill"
-                        style={{
-                          width: `${(timing / Math.max(...Object.values(latestResult.nodeTimings))) * 100}%`
-                        }}
-                      />
-                    </div>
-                    <span className="timing-value">{timing.toFixed(0)}ms</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
-        {/* History */}
-        <div className="history-panel">
-          <h3>📜 History ({testResults.length})</h3>
-          <div className="history-list">
-            {testResults.slice(0, 10).map((result) => (
-              <div key={result.id} className={`history-item ${result.success ? 'success' : 'failure'}`}>
-                <span className="history-status">{result.success ? '✅' : '❌'}</span>
-                <span className="history-time">{formatTimestamp(result.timestamp)}</span>
-                <span className="history-latency">{result.latency?.toFixed(2)}s</span>
-                <span className="history-tokens">{result.totalTokens || 0} tokens</span>
-              </div>
-            ))}
-            {testResults.length === 0 && (
-              <div className="no-history">No test runs yet</div>
-            )}
+        {!latestResult && !loading && (
+          <div className="empty-state">
+            <h3>Ready to Execute</h3>
+            <p>Configure input and run a test to see results</p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
