@@ -11,6 +11,7 @@ export interface Env {
   AAB_OPENROUTER_API_KEY: string;
   OPENROUTER_API_KEY?: string;
   ENVIRONMENT: string;
+  ASSETS: Fetcher;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -43,8 +44,19 @@ app.route('/api/chat', chatRoutes);
 app.route('/api/node-types', nodeTypeRoutes);
 
 // 404 handler
-app.notFound((c) => {
-  return c.json({ error: 'Not found' }, 404);
+app.notFound(async (c) => {
+  if (c.req.path.startsWith('/api/')) {
+    return c.json({ error: 'Not found' }, 404);
+  }
+
+  const assetResponse = await c.env.ASSETS.fetch(c.req.raw);
+  if (assetResponse.status !== 404) {
+    return assetResponse;
+  }
+
+  const url = new URL(c.req.url);
+  url.pathname = '/index.html';
+  return c.env.ASSETS.fetch(new Request(url, c.req.raw));
 });
 
 // Error handler
