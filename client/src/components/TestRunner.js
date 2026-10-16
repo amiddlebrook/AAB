@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './TestRunner.css';
 
-function TestRunner({ framework, apiUrl, onUpdate }) {
+function TestRunner({ framework, apiUrl, onRunComplete }) {
   const [testInput, setTestInput] = useState('Sample test input for the framework');
   const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -48,9 +48,7 @@ function TestRunner({ framework, apiUrl, onUpdate }) {
         (log.error ? '✕ ' : '✓ ') + (framework.nodes.find(n => n.id === log.nodeId)?.data?.label || log.nodeId) +
         ': ' + (log.error || log.output.slice(0, 500))
       ).join('\n') + '\n\n' + (result.success ? 'Execution completed.' : result.output));
-      if (onUpdate) {
-        // Metrics are calculated from persisted D1 results; do not overwrite the saved graph with synthetic metrics.
-      }
+      onRunComplete?.();
     } catch (error) {
       setStreamOutput('Execution failed: ' + (error.response?.data?.error || error.message));
       setExecutionState({});
@@ -110,8 +108,8 @@ function TestRunner({ framework, apiUrl, onUpdate }) {
         <div className="execution-monitor">
           <div className="monitor-header">
             <h3>Execution Trace</h3>
-            {executionState && Object.values(executionState).some(s => s === 'running') && (
-              <span className="live-badge">LIVE</span>
+            {loading && (
+              <span className="live-badge">EXECUTING</span>
             )}
           </div>
 
