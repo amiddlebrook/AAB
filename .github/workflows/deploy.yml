@@ -84,9 +84,15 @@ jobs:
           base="https://aab.averymiddlebrook2014.workers.dev"
           curl --fail --silent --show-error --retry 4 --retry-delay 2 "$base/" | grep -qi '<div id="root">'
           curl --fail --silent --show-error --retry 4 --retry-delay 2 "$base/api/health" | jq -e '.status == "ok"' >/dev/null
-          status="$(curl --silent --show-error --output /tmp/aab-auth.json --write-out '%{http_code}' "$base/api/frameworks")"
+          status="pending"
+          for attempt in {1..30}; do
+            status="$(curl --silent --show-error --output /tmp/aab-auth.json --write-out '%{http_code}' "$base/api/frameworks")"
+            [[ "$status" == "401" ]] && break
+            echo "Owner binding not yet propagated ($status), attempt $attempt/30."
+            sleep 3
+          done
           if [[ "$status" != "401" ]]; then
-            echo "::error::Expected protected /api/frameworks to return 401 without a token; received $status."
+            echo "::error::Protected API did not become ready; received HTTP $status."
             cat /tmp/aab-auth.json
             exit 1
           fi
