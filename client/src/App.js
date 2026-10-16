@@ -61,7 +61,7 @@ function App() {
       }
     } catch (err) {
       console.error('Error loading frameworks:', err);
-      setError('Failed to load frameworks. Using demo mode.');
+      setError('Unable to load saved frameworks.');
       setNeedsAuth(err.response?.status === 401 || err.response?.status === 503);
       setFrameworks([]);
       setSelectedFramework(null);
@@ -84,7 +84,7 @@ function App() {
         ]
       };
       const response = await axios.post(API_URL + '/frameworks', base);
-      const created = { ...base, ...response.data, metrics: { avgLatency: 0, successRate: 0, totalRuns: 0 } };
+      const created = response.data;
       setFrameworks(prev => [created, ...prev]);
       setSelectedFramework(created);
       setActiveTab('editor');
@@ -104,9 +104,9 @@ function App() {
     try {
       const old = frameworks.find(f => f.id === id) || selectedFramework;
       const payload = { ...old, ...updates };
-      await axios.put(API_URL + '/frameworks/' + id, payload);
-      setFrameworks(prev => prev.map(f => f.id === id ? payload : f));
-      setSelectedFramework(prev => prev?.id === id ? payload : prev);
+      const response = await axios.put(API_URL + '/frameworks/' + id, payload);
+      setFrameworks(prev => prev.map(f => f.id === id ? response.data : f));
+      setSelectedFramework(prev => prev?.id === id ? response.data : prev);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.error || 'Save failed; edits have not been persisted.');
@@ -123,7 +123,7 @@ function App() {
     try {
       const { id, metrics, ...payload } = framework;
       const result = await axios.post(API_URL + '/frameworks', payload);
-      const saved = { ...payload, ...result.data, metrics: { totalRuns: 0, successRate: 0, avgLatency: 0 } };
+      const saved = result.data;
       setFrameworks(prev => [saved, ...prev]);
       setSelectedFramework(saved);
       setActiveTab('editor');
