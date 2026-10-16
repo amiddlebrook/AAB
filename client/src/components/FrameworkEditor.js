@@ -201,14 +201,14 @@ function FrameworkEditor({ framework, onUpdate }) {
     setSaved(false);
   };
 
-  const saveFramework = () => {
-    onUpdate(framework.id, {
+  const saveFramework = async () => {
+    try { await onUpdate(framework.id, {
       name: frameworkName,
       description: frameworkDescription,
       nodes,
       edges,
     });
-    setSaved(true);
+    setSaved(true); } catch { setSaved(false); }
   };
 
   const duplicateNode = (node) => {
@@ -255,7 +255,7 @@ function FrameworkEditor({ framework, onUpdate }) {
         <div className="editor-section">
           <label>Add Nodes</label>
           <div className="node-palette">
-            {Object.entries(NODE_TYPES_CONFIG).map(([type, config]) => (
+            {Object.entries(NODE_TYPES_CONFIG).filter(([type]) => ['input','output','agent','processor','parallel','merge','tool'].includes(type)).map(([type, config]) => (
               <button
                 key={type}
                 className="palette-node"
@@ -291,7 +291,7 @@ function FrameworkEditor({ framework, onUpdate }) {
               <>
                 <label>Model</label>
                 <select
-                  value={selectedNode.data.config.model || 'meta-llama/llama-3.3-70b-instruct:free'}
+                  value={selectedNode.data.config.model || '@cf/meta/llama-3.1-8b-instruct-fp8'}
                   onChange={(e) => updateNode(selectedNode.id, {
                     config: { ...selectedNode.data.config, model: e.target.value }
                   })}
@@ -331,13 +331,13 @@ function FrameworkEditor({ framework, onUpdate }) {
               <>
                 <label>Tool Type</label>
                 <select
-                  value={selectedNode.data.config?.toolType || 'http'}
+                  value={selectedNode.data.config?.tool || 'echo'}
                   onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, toolType: e.target.value }
+                    config: { ...selectedNode.data.config, tool: e.target.value }
                   })}
                 >
-                  <option value="http">HTTP Request</option>
-                  <option value="calculator">Calculator</option>
+                  <option value="echo">Echo</option>
+                  <option value="word-count">Word Count</option>
                   <option value="search">Web Search</option>
                   <option value="code">Code Execution</option>
                   <option value="database">Database Query</option>
