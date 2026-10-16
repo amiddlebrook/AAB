@@ -58,7 +58,7 @@ jobs:
         run: npx wrangler d1 execute aab-db --remote --yes --file=./worker/schema.sql
       - name: Publish Worker and React assets
         run: npx wrangler deploy
-      - name: Sync owner secret from GitHub if configured
+      - name: Configure protected owner access
         shell: bash
         env:
           AAB_ADMIN_TOKEN: ${{ secrets.AAB_ADMIN_TOKEN }}
@@ -66,7 +66,29 @@ jobs:
           set -euo pipefail
           if [[ -n "${AAB_ADMIN_TOKEN:-}" ]]; then
             printf '%s' "$AAB_ADMIN_TOKEN" | npx wrangler secret put AAB_ADMIN_TOKEN
-            echo "AAB owner token synchronized to Worker."
+            echo "Synced existing GitHub owner token."
+          elif npx wrangler secret list | jq -e 'any(.[]; .name == "AAB_ADMIN_TOKEN")' >/dev/null; then
+            echo "Retaining existing Cloudflare owner token."
           else
-            echo "::warning::No AAB_ADMIN_TOKEN in GitHub secrets. The Worker requires an AAB_ADMIN_TOKEN set directly on Cloudflare to unlock its private API."
+            owner_token="$(openssl rand -hex 32)"
+            printf '%s' "$owner_token" | npx wrangler secret put AAB_ADMIN_TOKEN
+            ciphertext="$(printf '%s' "$owner_token" | openssl pkeyutl -encrypt -pubin -inkey .github/aab-owner-public.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)"
+            echo "::notice::AAB_OWNER_ACCESS_CIPHERTEXT:$ciphertext"
+            unset owner_token
+            echo "Created one-time owner token; emitted only RSA-OAEP encrypted ciphertext for secure delivery."
           fi
+      - name: Verify deployed application
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://aab.averymiddlebrook2014.workers.dev"
+          curl --fail --silent --show-error --retry 4 --retry-delay 2 "$base/" | grep -qi '<div id="root">'
+          curl --fail --silent --show-error --retry 4 --retry-delay 2 "$base/api/health" | jq -e '.status == "ok"' >/dev/null
+          status="$(curl --silent --show-error --output /tmp/aab-auth.json --write-out '%{http_code}' "$base/api/frameworks")"
+          if [[ "$status" != "401" ]]; then
+            echo "::error::Expected protected /api/frameworks to return 401 without a token; received $status."
+            cat /tmp/aab-auth.json
+            exit 1
+          fi
+          echo "Live SPA, API health and owner protection verified at $base"
+
