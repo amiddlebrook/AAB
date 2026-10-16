@@ -150,7 +150,7 @@ function FrameworkEditor({ framework, onUpdate }) {
   const addNode = (type) => {
     const config = NODE_TYPES_CONFIG[type];
     const nodeConfig = type === 'agent' ? {
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      model: '@cf/meta/llama-3.1-8b-instruct-fp8',
       temperature: 0.7,
       maxTokens: 2048
     } : {};
@@ -201,14 +201,14 @@ function FrameworkEditor({ framework, onUpdate }) {
     setSaved(false);
   };
 
-  const saveFramework = () => {
-    onUpdate(framework.id, {
+  const saveFramework = async () => {
+    try { await onUpdate(framework.id, {
       name: frameworkName,
       description: frameworkDescription,
       nodes,
       edges,
     });
-    setSaved(true);
+    setSaved(true); } catch { setSaved(false); }
   };
 
   const duplicateNode = (node) => {
@@ -255,7 +255,7 @@ function FrameworkEditor({ framework, onUpdate }) {
         <div className="editor-section">
           <label>Add Nodes</label>
           <div className="node-palette">
-            {Object.entries(NODE_TYPES_CONFIG).map(([type, config]) => (
+            {Object.entries(NODE_TYPES_CONFIG).filter(([type]) => ['input','output','agent','processor','parallel','merge','tool'].includes(type)).map(([type, config]) => (
               <button
                 key={type}
                 className="palette-node"
@@ -291,7 +291,7 @@ function FrameworkEditor({ framework, onUpdate }) {
               <>
                 <label>Model</label>
                 <select
-                  value={selectedNode.data.config.model || 'meta-llama/llama-3.3-70b-instruct:free'}
+                  value={selectedNode.data.config.model || '@cf/meta/llama-3.1-8b-instruct-fp8'}
                   onChange={(e) => updateNode(selectedNode.id, {
                     config: { ...selectedNode.data.config, model: e.target.value }
                   })}
@@ -329,52 +329,13 @@ function FrameworkEditor({ framework, onUpdate }) {
 
             {selectedNode.type === 'tool' && (
               <>
-                <label>Tool Type</label>
-                <select
-                  value={selectedNode.data.config?.toolType || 'http'}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, toolType: e.target.value }
-                  })}
-                >
-                  <option value="http">HTTP Request</option>
-                  <option value="calculator">Calculator</option>
-                  <option value="search">Web Search</option>
-                  <option value="code">Code Execution</option>
-                  <option value="database">Database Query</option>
+                <label>Built-in Tool</label>
+                <select value={selectedNode.data.config?.tool || 'echo'}
+                  onChange={e => updateNode(selectedNode.id, {config: {...selectedNode.data.config, tool:e.target.value}})}>
+                  <option value="echo">Echo text</option>
+                  <option value="word-count">Word count</option>
                 </select>
-
-                <label>API Endpoint / Query</label>
-                <input
-                  type="text"
-                  value={selectedNode.data.config?.endpoint || ''}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, endpoint: e.target.value }
-                  })}
-                  placeholder="https://api.example.com/..."
-                />
-
-                <label>HTTP Method</label>
-                <select
-                  value={selectedNode.data.config?.method || 'GET'}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, method: e.target.value }
-                  })}
-                >
-                  <option value="GET">GET</option>
-                  <option value="POST">POST</option>
-                  <option value="PUT">PUT</option>
-                  <option value="DELETE">DELETE</option>
-                </select>
-
-                <label>Headers (JSON)</label>
-                <textarea
-                  value={selectedNode.data.config?.headers || '{}'}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, headers: e.target.value }
-                  })}
-                  placeholder='{"Authorization": "Bearer ..."}'
-                  rows={2}
-                />
+                <p className="text-muted">External HTTP requests and paid tool APIs are not available.</p>
               </>
             )}
 
@@ -534,127 +495,25 @@ function FrameworkEditor({ framework, onUpdate }) {
 
             {selectedNode.type === 'processor' && (
               <>
-                <label>Processor Type</label>
-                <select
-                  value={selectedNode.data.config?.processorType || 'javascript'}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, processorType: e.target.value }
-                  })}
-                >
-                  <option value="javascript">JavaScript Code</option>
-                  <option value="json">JSON Transform</option>
-                  <option value="template">Template String</option>
-                  <option value="regex">Regex Extract</option>
-                  <option value="filter">Filter/Validate</option>
+                <label>Built-in Transform</label>
+                <select value={selectedNode.data.config?.transform || 'passthrough'}
+                  onChange={e => updateNode(selectedNode.id, {config: {...selectedNode.data.config, transform:e.target.value, code:undefined}})}>
+                  <option value="passthrough">Pass through</option>
+                  <option value="uppercase">Uppercase</option>
+                  <option value="lowercase">Lowercase</option>
+                  <option value="trim">Trim whitespace</option>
+                  <option value="word-count">Word count</option>
                 </select>
-
-                <label>Code / Transform</label>
-                <textarea
-                  value={selectedNode.data.config?.code || 'return input;'}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, code: e.target.value }
-                  })}
-                  placeholder="// JavaScript code&#10;return input.toUpperCase();"
-                  rows={5}
-                  style={{ fontFamily: 'monospace', fontSize: '12px' }}
-                />
-
-                <label>Output Format</label>
-                <select
-                  value={selectedNode.data.config?.outputFormat || 'string'}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, outputFormat: e.target.value }
-                  })}
-                >
-                  <option value="string">String</option>
-                  <option value="json">JSON Object</option>
-                  <option value="array">Array</option>
-                  <option value="number">Number</option>
-                </select>
+                <p className="text-muted">Custom JavaScript is disabled for security.</p>
               </>
             )}
 
             {selectedNode.type === 'parallel' && (
-              <>
-                <label>Parallel Strategy</label>
-                <select
-                  value={selectedNode.data.config?.strategy || 'all'}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, strategy: e.target.value }
-                  })}
-                >
-                  <option value="all">Wait for All</option>
-                  <option value="race">First Response Wins</option>
-                  <option value="any">Any N Responses</option>
-                  <option value="timeout">Timeout Fallback</option>
-                </select>
-
-                <label>Timeout (ms): {selectedNode.data.config?.timeout || 30000}</label>
-                <input
-                  type="range"
-                  min="1000"
-                  max="120000"
-                  step="1000"
-                  value={selectedNode.data.config?.timeout || 30000}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, timeout: parseInt(e.target.value) }
-                  })}
-                />
-
-                <label>Max Concurrent</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={selectedNode.data.config?.maxConcurrent || 5}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, maxConcurrent: parseInt(e.target.value) }
-                  })}
-                />
-              </>
+              <p className="text-muted">Independent downstream branches execute concurrently.</p>
             )}
 
             {selectedNode.type === 'merge' && (
-              <>
-                <label>Merge Strategy</label>
-                <select
-                  value={selectedNode.data.config?.strategy || 'concat'}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, strategy: e.target.value }
-                  })}
-                >
-                  <option value="concat">Concatenate All</option>
-                  <option value="best">Best Quality (LLM Judge)</option>
-                  <option value="vote">Majority Vote</option>
-                  <option value="first">First Non-Empty</option>
-                  <option value="custom">Custom Code</option>
-                </select>
-
-                <label>Separator</label>
-                <input
-                  type="text"
-                  value={selectedNode.data.config?.separator || '\\n---\\n'}
-                  onChange={(e) => updateNode(selectedNode.id, {
-                    config: { ...selectedNode.data.config, separator: e.target.value }
-                  })}
-                  placeholder="\n---\n"
-                />
-
-                {selectedNode.data.config?.strategy === 'custom' && (
-                  <>
-                    <label>Merge Code</label>
-                    <textarea
-                      value={selectedNode.data.config?.mergeCode || 'return inputs.join("\\n");'}
-                      onChange={(e) => updateNode(selectedNode.id, {
-                        config: { ...selectedNode.data.config, mergeCode: e.target.value }
-                      })}
-                      placeholder="// inputs is array&#10;return inputs[0];"
-                      rows={3}
-                      style={{ fontFamily: 'monospace', fontSize: '12px' }}
-                    />
-                  </>
-                )}
-              </>
+              <p className="text-muted">Merge concatenates incoming text using a section separator.</p>
             )}
 
             <div className="node-actions">

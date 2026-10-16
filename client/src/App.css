@@ -297,3 +297,33 @@ button {
 .mono {
   font-family: 'SF Mono', 'Consolas', monospace;
 }
+/* 2026 workspace refinement: readable surfaces, adaptable navigation, keyboard focus */
+:root { --bg-0:#0c111a; --bg-1:#111827; --bg-2:#162033; --bg-3:#223047;
+  --bg-hover:#263850; --accent:#60a5fa; --accent-dim:rgba(96,165,250,.12);
+  --text-0:#f1f5f9; --text-1:#b5c3d5; --text-2:#8092ab; --border:#2a3a53;
+  --success:#34d399; --warning:#fbbf24; --error:#fb7185; }
+.App-header { min-height:72px; height:auto; padding:12px clamp(16px,3vw,40px); gap:14px; flex-wrap:wrap; }
+.App-header h1 { font-size:24px; font-weight:800; letter-spacing:-1px; }
+.header-subtitle { color:var(--text-1); font-size:13px; }
+.header-pill { display:inline-block; border:1px solid rgba(52,211,153,.4); color:#34d399;
+  border-radius:50px; font-size:10px; margin-left:9px; padding:4px 9px; letter-spacing:.07em; text-transform:uppercase; }
+.owner-controls { margin-left:auto; }
+.owner-button { background:transparent; border:1px solid var(--border); border-radius:9px; color:var(--text-1); padding:8px 12px; }
+.owner-hint { color:var(--text-2); font-size:12px; }
+.App-nav { height:auto; min-height:56px; padding:10px clamp(16px,3vw,40px); gap:8px; overflow-x:auto; }
+.App-nav button { height:34px; border-radius:8px; font-size:12px; white-space:nowrap; }
+.App-nav button.active { background:var(--accent-dim); color:#93c5fd; }
+.App-nav .create-btn { margin-left:auto; border-radius:8px; }
+.App-main { padding:clamp(14px,2.5vw,36px); max-width:1800px; width:100%; margin:0 auto; }
+.App-footer { padding:16px 24px; color:var(--text-2); font-size:11px; border-top:1px solid var(--border); }
+input,textarea,select { border-radius:8px; font-size:13px; padding:10px 12px; }
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.access-panel { display:flex; gap:16px; align-items:center; padding:18px clamp(16px,3vw,40px);
+  background:#1c293b; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.access-panel div { flex:1 1 320px; }
+.access-panel strong { font-size:15px; }
+.access-panel p { color:var(--text-1); font-size:12px; margin-top:4px; }
+.access-panel input { flex:1 1 200px; min-width:170px; }
+.btn-primary { border-radius:8px; padding:11px 18px; background:#2563eb; }
+@media(max-width:680px) { .App-header .header-divider{display:none;} .header-subtitle{width:100%;}
+  .owner-controls{margin-left:0;} .App-nav .create-btn{margin-left:0;} }

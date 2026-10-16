@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './TestRunner.css';
 
-function TestRunner({ framework, apiUrl, onUpdate }) {
+function TestRunner({ framework, apiUrl, onRunComplete }) {
   const [testInput, setTestInput] = useState('Sample test input for the framework');
   const [testResults, setTestResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,125 +35,25 @@ function TestRunner({ framework, apiUrl, onUpdate }) {
 
   const runTest = async () => {
     setLoading(true);
-    setStreamOutput('');
+    setStreamOutput('Executing workflow on Cloudflare Workers…');
     setLatestResult(null);
-
-    // Initialize execution state for all nodes
-    const initialState = {};
-    framework.nodes.forEach(node => {
-      initialState[node.id] = 'pending';
-    });
-    setExecutionState(initialState);
-
+    setExecutionState(Object.fromEntries(framework.nodes.map(n => [n.id, 'running'])));
     try {
-      // Simulate streaming execution with demo mode fallback
-      const result = await simulateStreamingExecution();
+      const response = await axios.post(API_URL + '/tests/' + framework.id + '/run', { testInput });
+      const result = response.data;
       setLatestResult(result);
-      const newResults = [result, ...testResults];
-      setTestResults(newResults);
-
-      // Update Framework Metrics in Parent
-      if (onUpdate) {
-        const currentMetrics = framework.metrics || { totalRuns: 0, successRate: 0, avgLatency: 0 };
-        const totalRuns = currentMetrics.totalRuns + 1;
-        const newSuccessRate = ((currentMetrics.successRate * currentMetrics.totalRuns) + (result.success ? 1 : 0)) / totalRuns;
-        const newAvgLatency = ((currentMetrics.avgLatency * currentMetrics.totalRuns) + result.latency) / totalRuns;
-
-        onUpdate(framework.id, {
-          metrics: {
-            totalRuns,
-            successRate: newSuccessRate,
-            avgLatency: newAvgLatency
-          }
-        });
-      }
+      setTestResults(prev => [result, ...prev]);
+      setExecutionState(Object.fromEntries(framework.nodes.map(n => [n.id, result.nodeTimings?.[n.id] !== undefined ? 'completed' : 'pending'])));
+      setStreamOutput((result.logs || []).map(log =>
+        (log.error ? '✕ ' : '✓ ') + (framework.nodes.find(n => n.id === log.nodeId)?.data?.label || log.nodeId) +
+        ': ' + (log.error || log.output.slice(0, 500))
+      ).join('\n') + '\n\n' + (result.success ? 'Execution completed.' : result.output));
+      onRunComplete?.();
     } catch (error) {
-      console.error('Error running test:', error);
-    } finally {
-      setLoading(false);
-    }
+      setStreamOutput('Execution failed: ' + (error.response?.data?.error || error.message));
+      setExecutionState({});
+    } finally { setLoading(false); }
   };
-
-  const simulateStreamingExecution = async () => {
-    const nodeTimings = {};
-    const nodeOutputs = {};
-    let totalLatency = 0;
-    let totalTokens = 0;
-    let totalCost = 0;
-
-    // Sort nodes by connection order (simplified)
-    const sortedNodes = [...framework.nodes];
-
-    for (const node of sortedNodes) {
-      // Update state to running
-      setExecutionState(prev => ({ ...prev, [node.id]: 'running' }));
-      setStreamOutput(prev => prev + `\n▶ Executing ${node.data?.label || node.id}...`);
-
-      // Simulate processing time
-      const timing = Math.random() * 800 + 200;
-      await new Promise(r => setTimeout(r, timing));
-
-      // Generate simulated output based on node type
-      let output = '';
-      let tokens = 0;
-      let cost = 0;
-
-      switch (node.type) {
-        case 'agent':
-          output = `[${node.data?.config?.model || 'unknown'}] Generated response for: "${testInput.slice(0, 30)}..."`;
-          tokens = Math.floor(Math.random() * 300) + 100;
-          cost = tokens * 0.00002;
-          break;
-        case 'processor':
-          output = `Processed input through custom logic`;
-          break;
-        case 'rag':
-          output = `Retrieved 3 relevant documents with similarity > 0.85`;
-          tokens = 50;
-          cost = tokens * 0.00001;
-          break;
-        case 'router':
-          output = `Routed to path: ${Math.random() > 0.5 ? 'primary' : 'fallback'}`;
-          break;
-        case 'tool':
-          output = `Tool response: { status: "success", data: {...} }`;
-          break;
-        default:
-          output = `Node ${node.id} completed`;
-      }
-
-      nodeTimings[node.id] = timing;
-      nodeOutputs[node.id] = output;
-      totalLatency += timing;
-      totalTokens += tokens;
-      totalCost += cost;
-
-      setStreamOutput(prev => prev + `\n  ✓ ${output}`);
-      setExecutionState(prev => ({ ...prev, [node.id]: 'completed' }));
-    }
-
-    setStreamOutput(prev => prev + `\n\n✨ Execution completed in ${(totalLatency / 1000).toFixed(2)}s`);
-
-    return {
-      id: `exec-${Date.now()}`,
-      frameworkId: framework.id,
-      timestamp: new Date().toISOString(),
-      testInput,
-      status: 'completed',
-      success: true,
-      latency: totalLatency / 1000,
-      totalTokens,
-      totalCost,
-      output: `Framework execution completed successfully.\nProcessed ${framework.nodes.length} nodes in ${(totalLatency / 1000).toFixed(2)}s`,
-      nodeTimings,
-      nodeOutputs
-    };
-  };
-
-
-
-
-
 
   return (
     <div className="test-runner">
@@ -208,8 +108,8 @@ function TestRunner({ framework, apiUrl, onUpdate }) {
         <div className="execution-monitor">
           <div className="monitor-header">
             <h3>Execution Trace</h3>
-            {executionState && Object.values(executionState).some(s => s === 'running') && (
-              <span className="live-badge">LIVE</span>
+            {loading && (
+              <span className="live-badge">EXECUTING</span>
             )}
           </div>
 

@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import axios from 'axios';
+import React, { useState } from 'react';
 import './ABTesting.css';
 
-function ABTesting({ frameworks }) {
+function ABTesting({ frameworks, apiUrl = '/api', onRunComplete }) {
     const [frameworkA, setFrameworkA] = useState(null);
     const [frameworkB, setFrameworkB] = useState(null);
     const [testInput, setTestInput] = useState('Sample input for A/B comparison test');
@@ -9,81 +10,39 @@ function ABTesting({ frameworks }) {
     const [isRunning, setIsRunning] = useState(false);
     const [results, setResults] = useState(null);
     const [runHistory, setRunHistory] = useState([]);
+    const [runError, setRunError] = useState('');
 
-    // Run A/B test
-    const runABTest = useCallback(async () => {
+    // Execute both saved architectures against the same inputs on the actual Worker.
+    const runABTest = async () => {
         if (!frameworkA || !frameworkB) return;
-
         setIsRunning(true);
         setResults(null);
-
-        const resultsA = [];
-        const resultsB = [];
-
-        // Simulate running both frameworks multiple times
-        for (let i = 0; i < numRuns; i++) {
-            // Simulate Framework A
-            const startA = Date.now();
-            await simulateExecution(frameworkA);
-            const latencyA = Date.now() - startA;
-            const successA = Math.random() > 0.1; // 90% success rate
-            resultsA.push({
-                run: i + 1,
-                latency: latencyA / 1000,
-                success: successA,
-                tokens: Math.floor(Math.random() * 300) + 100,
-                cost: (Math.random() * 0.005).toFixed(4)
-            });
-
-            // Simulate Framework B
-            const startB = Date.now();
-            await simulateExecution(frameworkB);
-            const latencyB = Date.now() - startB;
-            const successB = Math.random() > 0.1;
-            resultsB.push({
-                run: i + 1,
-                latency: latencyB / 1000,
-                success: successB,
-                tokens: Math.floor(Math.random() * 300) + 100,
-                cost: (Math.random() * 0.005).toFixed(4)
-            });
-        }
-
-        // Calculate aggregated metrics
-        const metricsA = calculateMetrics(resultsA);
-        const metricsB = calculateMetrics(resultsB);
-
-        const testResult = {
-            id: `ab-${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            testInput,
-            numRuns,
-            frameworkA: {
-                id: frameworkA.id,
-                name: frameworkA.name,
-                results: resultsA,
-                metrics: metricsA
-            },
-            frameworkB: {
-                id: frameworkB.id,
-                name: frameworkB.name,
-                results: resultsB,
-                metrics: metricsB
-            },
-            winner: determineWinner(metricsA, metricsB)
-        };
-
-        setResults(testResult);
-        setRunHistory(prev => [testResult, ...prev.slice(0, 9)]);
-        setIsRunning(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [frameworkA, frameworkB, testInput, numRuns]);
-
-    // Simulate execution delay
-    const simulateExecution = async (framework) => {
-        const baseDelay = (framework.nodes?.length || 3) * 100;
-        const variation = Math.random() * 200;
-        await new Promise(r => setTimeout(r, baseDelay + variation));
+        setRunError('');
+        const resultsA = [], resultsB = [];
+        try {
+            for (let i = 0; i < numRuns; i++) {
+                const [a, b] = await Promise.all([
+                    axios.post(apiUrl + '/tests/' + frameworkA.id + '/run', { testInput }),
+                    axios.post(apiUrl + '/tests/' + frameworkB.id + '/run', { testInput })
+                ]);
+                for (const [response, bucket] of [[a, resultsA], [b, resultsB]]) {
+                    const r = response.data;
+                    bucket.push({ run: i + 1, latency: r.latency, success: r.success, tokens: r.totalTokens, cost: r.totalCost });
+                }
+            }
+            const metricsA = calculateMetrics(resultsA), metricsB = calculateMetrics(resultsB);
+            const testResult = {
+                id: 'ab-' + Date.now(), timestamp: new Date().toISOString(), testInput, numRuns,
+                frameworkA: { id: frameworkA.id, name: frameworkA.name, results: resultsA, metrics: metricsA },
+                frameworkB: { id: frameworkB.id, name: frameworkB.name, results: resultsB, metrics: metricsB },
+                winner: determineWinner(metricsA, metricsB)
+            };
+            setResults(testResult);
+            setRunHistory(prev => [testResult, ...prev.slice(0, 9)]);
+            onRunComplete?.();
+        } catch (error) {
+            setRunError(error.response?.data?.error || error.message);
+        } finally { setIsRunning(false); }
     };
 
     // Calculate metrics from results
@@ -115,8 +74,9 @@ function ABTesting({ frameworks }) {
     // Determine winner based on composite score
     const determineWinner = (metricsA, metricsB) => {
         // Score based on success rate (60%), latency (30%), cost (10%)
-        const scoreA = metricsA.successRate * 0.6 + (1 - metricsA.avgLatency / 5) * 0.3 + (1 - metricsA.totalCost / 0.1) * 0.1;
-        const scoreB = metricsB.successRate * 0.6 + (1 - metricsB.avgLatency / 5) * 0.3 + (1 - metricsB.totalCost / 0.1) * 0.1;
+        const maxLatency = Math.max(metricsA.avgLatency, metricsB.avgLatency, 0.001);
+        const scoreA = metricsA.successRate * 0.7 + (1 - metricsA.avgLatency / maxLatency) * 0.3;
+        const scoreB = metricsB.successRate * 0.7 + (1 - metricsB.avgLatency / maxLatency) * 0.3;
 
         if (Math.abs(scoreA - scoreB) < 0.05) return 'tie';
         return scoreA > scoreB ? 'A' : 'B';
@@ -137,6 +97,8 @@ function ABTesting({ frameworks }) {
                 <h2>⚖️ A/B Testing</h2>
                 <p>Compare framework performance side-by-side</p>
             </div>
+
+            {runError && <p role="alert" className="error-banner">{runError}</p>}
 
             <div className="ab-setup">
                 <div className="framework-select">
