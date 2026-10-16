@@ -1,256 +1,80 @@
-# AAB - Agentic Architecture Benchmarks
+# AAB · Agentic Architecture Benchmarks
 
-🤖 **A comprehensive web application for testing, visualizing, and optimizing agentic frameworks and architectures.**
+[![Continuous Integration](https://github.com/amiddlebrook/AAB/actions/workflows/ci.yml/badge.svg)](https://github.com/amiddlebrook/AAB/actions/workflows/ci.yml)
+[![Cloudflare Deployment](https://github.com/amiddlebrook/AAB/actions/workflows/deploy.yml/badge.svg)](https://github.com/amiddlebrook/AAB/actions/workflows/deploy.yml)
 
-## Features
+**Build directed AI workflows, execute them on native Cloudflare inference, and compare measured results.**
 
-### 🎨 Visual Framework Editor
-- **Interactive Graph Editor**: Build agent workflows using a drag-and-drop interface
-- **Node Types**: Support for Input, Output, Agent, Processor, and Decision nodes
-- **Real-time Editing**: Modify framework structure, connections, and configurations on the fly
-- **Configuration Management**: Customize agent parameters (model, temperature, etc.)
+## What was restored
 
-### 🧪 Test Runner
-- **Execute Tests**: Run test cases against your frameworks with custom inputs
-- **Performance Metrics**: Track latency, success rates, and execution times
-- **Node-level Insights**: Visualize individual node execution timings
-- **Test History**: Review past test results and performance trends
+The project retains its React Flow editor, framework library, AI-assisted graph builder, test runner, analytics, imports/exports, and A/B comparison. The backend is a single Cloudflare Worker using D1 for persistence and Workers AI for inference. No Express server, paid OpenRouter key, or separate frontend hosting is needed. Both the API and React SPA deploy as one Worker.
 
-### 📊 Dashboard & Analytics
-- **Comparative Analysis**: Compare performance across multiple frameworks
-- **Success Rate Tracking**: Monitor and optimize framework reliability
-- **Performance Metrics**: Analyze average latency and throughput
-- **Insights & Recommendations**: Get AI-powered suggestions for optimization
+| Layer | Platform |
+| --- | --- |
+| UI | React + React Flow, Worker static assets |
+| API | Hono + Cloudflare Workers |
+| Data | Cloudflare D1 |
+| Model | `@cf/meta/llama-3.1-8b-instruct-fp8` via Workers AI |
+| Automation | GitHub Actions + Wrangler |
+| Private access | `AAB_ADMIN_TOKEN` Worker secret |
 
-### 💾 Framework Management
-- **CRUD Operations**: Create, read, update, and delete frameworks
-- **Pre-built Templates**: Start with example frameworks (Sequential Chain, Parallel Processing)
-- **Export/Import**: Save and share framework configurations
+Real test runs are recorded to D1 with node output, latency, success, logs, and token metrics. A/B comparisons execute saved workflows on the same input; synthetic randomized results are removed.
 
-## Architecture
+### Safe execution scope
 
-### Backend (Node.js/Express)
-- RESTful API for framework management
-- In-memory storage for rapid prototyping
-- Test execution engine with simulated metrics
-- CORS-enabled for cross-origin requests
+Supported nodes are input/output, agent, processor transforms (`passthrough`, `uppercase`, `lowercase`, `trim`, `word-count`), merge, parallel fan-out, and echo/word-count tools. Independent branches run concurrently. Router, decision, memory, loop and retry nodes imported from legacy graphs are pass-through compatibility nodes—not conditional routing or durable memory. RAG requires a real retrieval source, so it explicitly fails rather than inventing documents. Arbitrary user-provided JavaScript is not executed; the old Code surface is hidden.
 
-### Frontend (React)
-- Modern React UI with hooks
-- ReactFlow for graph visualization
-- Axios for API communication
-- Responsive design with custom CSS
+Only a Cloudflare-hosted AI model is offered. Old graph model names are ignored by the backend rather than making paid external calls.
 
-## Installation
+## Deploy free on Cloudflare (one-time configuration)
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
+1. Use a **Cloudflare Free** account. Create a D1 database called `aab-db`, if necessary, using `npx wrangler d1 create aab-db`. Verify its ID in `wrangler.toml`: the existing ID `98cf5a19-acda-4048-8b3e-77109b16cec5` belongs to the original project and may not be in your current account.
+2. In GitHub **Settings → Secrets and variables → Actions**, set secrets `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`. Give the Cloudflare token Workers Scripts and D1 write permissions, scoped to your account.
+3. Run `npx wrangler secret put AAB_ADMIN_TOKEN` (or add that secret in the Cloudflare dashboard). Use a strong random token: all application data and AI endpoints require it in production.
+4. Set GitHub Actions repository **Variable** `CLOUDFLARE_DEPLOY_ENABLED` to `true`.
+5. Merge to `main` or run the production workflow. GitHub Actions validates, builds, applies the idempotent D1 schema, and publishes to your `*.workers.dev` subdomain. Visit it and unlock with the token.
 
-### Setup
+A custom domain or paid vendor is not needed. Secret setup requires account access and is intentionally not automated through source code.
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/amiddlebrook/AAB.git
-cd AAB
-```
+## Local startup
 
-2. **Install dependencies**
-```bash
-# Install root dependencies
-npm install
-
-# Install client dependencies
-cd client
-npm install
-cd ..
-```
-
-3. **Start the application**
-```bash
-# Start both backend and frontend concurrently
-npm start
-```
-
-This will start:
-- Backend API server on `http://localhost:3001`
-- Frontend React app on `http://localhost:3000`
-
-### Alternative: Run Separately
+Node 22 or newer:
 
 ```bash
-# Terminal 1 - Backend
-npm run server
-
-# Terminal 2 - Frontend
-npm run client
+npm ci
+npm ci --prefix client
+cp .dev.vars.example .dev.vars
+npm run db:migrate:local
+npm run build --prefix client
+npm run dev
 ```
 
-## Usage
+Visit http://localhost:8787. Wrangler uses local D1. The example sets `ENVIRONMENT=development`, which allows no-token **local-only** access. For live React editing, use `npm start --prefix client` and http://localhost:3000 as well.
 
-### Creating a Framework
+## API
 
-1. Click **"+ New Framework"** in the navigation bar
-2. The editor will open with a basic template
-3. Add nodes using the sidebar buttons:
-   - **Input**: Data entry point
-   - **Agent**: AI agent with configurable model and temperature
-   - **Processor**: Data processing node
-   - **Decision**: Conditional routing node
-   - **Output**: Result endpoint
-4. Connect nodes by dragging from one node's edge to another
-5. Configure node properties by clicking on them
-6. Save your framework
+| Route | Behavior |
+| --- | --- |
+| `GET /api/health` | Public health response |
+| `GET /api/frameworks` | Private framework list |
+| `POST /api/frameworks` | Save a graph |
+| `PUT /api/frameworks/:id` | Save edits |
+| `DELETE /api/frameworks/:id` | Delete graph and logs |
+| `POST /api/tests/:frameworkId/run` | Execute and persist |
+| `GET /api/tests/:frameworkId/results` | Results history |
+| `POST /api/chat` | Workers AI assistant |
+| `POST /api/chat/generate` | Workers AI graph design |
 
-### Testing a Framework
+Production API calls except health require `Authorization: Bearer <AAB_ADMIN_TOKEN>`. The browser keeps this token in sessionStorage, not source code.
 
-1. Select a framework from the list
-2. Navigate to the **"Test Runner"** tab
-3. Enter test input in the text area
-4. Click **"▶️ Run Test"**
-5. View results including:
-   - Success/failure status
-   - Execution latency
-   - Node-level timing breakdown
-   - Output results
+## True $0 operation and limits
 
-### Analyzing Performance
+Cloudflare Workers AI currently provides **10,000 free Neurons per account per day**; on the Free plan requests exceeding allocation fail rather than automatically becoming billed. Workers and D1 also have free limits. This is free-tier operation, not unlimited free inference. The UI's $0 result means no per-request cash charge within the Free allocation; it is not an energy/compute accounting metric.
 
-1. Go to the **"Dashboard"** tab
-2. Review overall statistics:
-   - Total frameworks and test runs
-   - Average success rates
-   - Average latency
-3. Compare frameworks side-by-side
-4. Identify best performing and fastest frameworks
-5. Review insights and optimization suggestions
+- [Cloudflare Workers AI free allocation](https://developers.cloudflare.com/workers-ai/platform/pricing/)
+- [Workers static assets](https://developers.cloudflare.com/workers/static-assets/)
+- [GitHub CI](.github/workflows/ci.yml) · [Deployment](.github/workflows/deploy.yml)
 
-## API Documentation
+### Troubleshooting
 
-### Frameworks
-
-#### Get all frameworks
-```
-GET /api/frameworks
-```
-
-#### Get specific framework
-```
-GET /api/frameworks/:id
-```
-
-#### Create framework
-```
-POST /api/frameworks
-Body: {
-  name: string,
-  description: string,
-  nodes: array,
-  edges: array
-}
-```
-
-#### Update framework
-```
-PUT /api/frameworks/:id
-Body: {
-  name: string,
-  description: string,
-  nodes: array,
-  edges: array
-}
-```
-
-#### Delete framework
-```
-DELETE /api/frameworks/:id
-```
-
-### Testing
-
-#### Run test
-```
-POST /api/frameworks/:id/test
-Body: {
-  testInput: string
-}
-```
-
-#### Get test results
-```
-GET /api/frameworks/:id/results
-```
-
-#### Get all results
-```
-GET /api/results
-```
-
-### Health Check
-```
-GET /api/health
-```
-
-## Technology Stack
-
-### Backend
-- **Express.js**: Web framework
-- **CORS**: Cross-origin resource sharing
-- **body-parser**: Request body parsing
-- **uuid**: Unique ID generation
-
-### Frontend
-- **React**: UI library
-- **ReactFlow**: Graph visualization
-- **Axios**: HTTP client
-- **React Hooks**: State management
-
-## Project Structure
-
-```
-AAB/
-├── server/
-│   └── index.js          # Backend API server
-├── client/
-│   ├── public/           # Static assets
-│   └── src/
-│       ├── components/   # React components
-│       │   ├── FrameworkList.js
-│       │   ├── FrameworkEditor.js
-│       │   ├── TestRunner.js
-│       │   └── Dashboard.js
-│       ├── App.js        # Main app component
-│       └── index.js      # Entry point
-├── package.json          # Root dependencies
-└── README.md            # Documentation
-```
-
-## Future Enhancements
-
-- [ ] Persistent storage (database integration)
-- [ ] Real AI model integration
-- [ ] User authentication
-- [ ] Framework versioning
-- [ ] Export to code/configuration files
-- [ ] Collaborative editing
-- [ ] Advanced analytics and ML insights
-- [ ] Custom node types
-- [ ] Integration with CI/CD pipelines
-- [ ] Framework marketplace/sharing
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-ISC
-
-## Support
-
-For issues and questions, please open an issue on the GitHub repository.
-
----
-
-Built with ❤️ for the agentic AI community
-
+**401**: invalid owner token. **503**: production secret not configured. **D1 500**: check database ID and execute `npx wrangler d1 execute aab-db --remote --file=worker/schema.sql`. **AI error**: check model binding and free quota. Use [GitHub Actions](https://github.com/amiddlebrook/AAB/actions) for build logs.

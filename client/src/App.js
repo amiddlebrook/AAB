@@ -5,15 +5,14 @@ import FrameworkEditor from './components/FrameworkEditor';
 import TestRunner from './components/TestRunner';
 import Dashboard from './components/Dashboard';
 import ChatAgentBuilder from './components/ChatAgentBuilder';
-import CustomCodeEditor from './components/CustomCodeEditor';
 import ImportExport from './components/ImportExport';
 import ABTesting from './components/ABTesting';
 import axios from 'axios';
 
 // Use Cloudflare Worker in production, localhost in development
-const API_URL = process.env.NODE_ENV === 'production'
-  ? '/api'
-  : 'http://localhost:8787/api';
+const API_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8787/api';
+const initialToken = sessionStorage.getItem('aab_owner_token') || '';
+if (initialToken) axios.defaults.headers.common.Authorization = 'Bearer ' + initialToken;
 
 function App() {
   const [frameworks, setFrameworks] = useState([]);
@@ -21,6 +20,30 @@ function App() {
   const [activeTab, setActiveTab] = useState('list');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [ownerToken, setOwnerToken] = useState(initialToken);
+  const [tokenInput, setTokenInput] = useState('');
+  const [needsAuth, setNeedsAuth] = useState(false);
+
+  const unlock = (event) => {
+    event.preventDefault();
+    const token = tokenInput.trim();
+    if (!token) return;
+    sessionStorage.setItem('aab_owner_token', token);
+    axios.defaults.headers.common.Authorization = 'Bearer ' + token;
+    setOwnerToken(token);
+    setNeedsAuth(false);
+    setTokenInput('');
+    loadFrameworks();
+  };
+  const lock = () => {
+    sessionStorage.removeItem('aab_owner_token');
+    delete axios.defaults.headers.common.Authorization;
+    setOwnerToken('');
+    setFrameworks([]);
+    setSelectedFramework(null);
+    setNeedsAuth(true);
+    setError('Enter your owner token to access AAB.');
+  };
 
   useEffect(() => {
     loadFrameworks();
@@ -39,104 +62,10 @@ function App() {
     } catch (err) {
       console.error('Error loading frameworks:', err);
       setError('Failed to load frameworks. Using demo mode.');
-      // Provide rich demo data when API is unavailable
-      setFrameworks([
-        {
-          id: 'demo-1',
-          name: 'Sequential Agent Chain',
-          description: 'A simple sequential chain of agents processing data in order',
-          nodes: [
-            { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Input' } },
-            { id: 'agent1', type: 'agent', position: { x: 300, y: 200 }, data: { label: 'Analyzer', config: { model: 'meta-llama/llama-3.3-70b-instruct:free', temperature: 0.7 } } },
-            { id: 'output', type: 'output', position: { x: 500, y: 200 }, data: { label: 'Output' } }
-          ],
-          edges: [
-            { id: 'e1', source: 'input', target: 'agent1', type: 'smoothstep' },
-            { id: 'e2', source: 'agent1', target: 'output', type: 'smoothstep' }
-          ],
-          metrics: { avgLatency: 1.5, successRate: 0.95, totalRuns: 25 }
-        },
-        {
-          id: 'demo-2',
-          name: 'RAG Pipeline',
-          description: 'Retrieval-augmented generation with vector search for context-aware responses',
-          nodes: [
-            { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Query' } },
-            { id: 'rag', type: 'rag', position: { x: 280, y: 200 }, data: { label: 'Vector Search', config: { topK: 3 } } },
-            { id: 'agent', type: 'agent', position: { x: 460, y: 200 }, data: { label: 'Generator', config: { model: 'openai/gpt-4o', temperature: 0.5 } } },
-            { id: 'output', type: 'output', position: { x: 640, y: 200 }, data: { label: 'Response' } }
-          ],
-          edges: [
-            { id: 'e1', source: 'input', target: 'rag', type: 'smoothstep' },
-            { id: 'e2', source: 'rag', target: 'agent', type: 'smoothstep' },
-            { id: 'e3', source: 'agent', target: 'output', type: 'smoothstep' }
-          ],
-          metrics: { avgLatency: 2.1, successRate: 0.92, totalRuns: 18 }
-        },
-        {
-          id: 'demo-3',
-          name: 'Model Racing',
-          description: 'Parallel execution across multiple LLMs with result merging',
-          nodes: [
-            { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Input' } },
-            { id: 'parallel', type: 'parallel', position: { x: 250, y: 200 }, data: { label: 'Split' } },
-            { id: 'claude', type: 'agent', position: { x: 400, y: 100 }, data: { label: 'Claude', config: { model: 'anthropic/claude-3.5-sonnet' } } },
-            { id: 'gpt', type: 'agent', position: { x: 400, y: 200 }, data: { label: 'GPT-4o', config: { model: 'openai/gpt-4o' } } },
-            { id: 'gemini', type: 'agent', position: { x: 400, y: 300 }, data: { label: 'Gemini', config: { model: 'google/gemini-flash-1.5' } } },
-            { id: 'merge', type: 'merge', position: { x: 550, y: 200 }, data: { label: 'Best Result' } },
-            { id: 'output', type: 'output', position: { x: 700, y: 200 }, data: { label: 'Output' } }
-          ],
-          edges: [
-            { id: 'e1', source: 'input', target: 'parallel' },
-            { id: 'e2', source: 'parallel', target: 'claude' },
-            { id: 'e3', source: 'parallel', target: 'gpt' },
-            { id: 'e4', source: 'parallel', target: 'gemini' },
-            { id: 'e5', source: 'claude', target: 'merge' },
-            { id: 'e6', source: 'gpt', target: 'merge' },
-            { id: 'e7', source: 'gemini', target: 'merge' },
-            { id: 'e8', source: 'merge', target: 'output' }
-          ],
-          metrics: { avgLatency: 1.8, successRate: 0.98, totalRuns: 42 }
-        },
-        {
-          id: 'demo-4',
-          name: 'Tool-Augmented Agent',
-          description: 'Agent with web search and calculator tool access',
-          nodes: [
-            { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Query' } },
-            { id: 'planner', type: 'agent', position: { x: 280, y: 200 }, data: { label: 'Planner', config: { model: 'anthropic/claude-3.5-sonnet' } } },
-            { id: 'search', type: 'tool', position: { x: 460, y: 120 }, data: { label: 'Web Search', config: { endpoint: 'search' } } },
-            { id: 'calc', type: 'tool', position: { x: 460, y: 280 }, data: { label: 'Calculator', config: { endpoint: 'calc' } } },
-            { id: 'synth', type: 'agent', position: { x: 640, y: 200 }, data: { label: 'Synthesizer', config: { model: 'anthropic/claude-3.5-sonnet' } } },
-            { id: 'output', type: 'output', position: { x: 820, y: 200 }, data: { label: 'Answer' } }
-          ],
-          edges: [
-            { id: 'e1', source: 'input', target: 'planner' },
-            { id: 'e2', source: 'planner', target: 'search' },
-            { id: 'e3', source: 'planner', target: 'calc' },
-            { id: 'e4', source: 'search', target: 'synth' },
-            { id: 'e5', source: 'calc', target: 'synth' },
-            { id: 'e6', source: 'synth', target: 'output' }
-          ],
-          metrics: { avgLatency: 3.2, successRate: 0.88, totalRuns: 15 }
-        }
-      ]);
-      // Auto-select first demo framework
-      setSelectedFramework({
-        id: 'demo-1',
-        name: 'Sequential Agent Chain',
-        description: 'A simple sequential chain of agents processing data in order',
-        nodes: [
-          { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Input' } },
-          { id: 'agent1', type: 'agent', position: { x: 300, y: 200 }, data: { label: 'Analyzer', config: { model: 'meta-llama/llama-3.3-70b-instruct:free', temperature: 0.7 } } },
-          { id: 'output', type: 'output', position: { x: 500, y: 200 }, data: { label: 'Output' } }
-        ],
-        edges: [
-          { id: 'e1', source: 'input', target: 'agent1', type: 'smoothstep' },
-          { id: 'e2', source: 'agent1', target: 'output', type: 'smoothstep' }
-        ],
-        metrics: { avgLatency: 1.5, successRate: 0.95, totalRuns: 25 }
-      });
+      setNeedsAuth(err.response?.status === 401 || err.response?.status === 503);
+      setFrameworks([]);
+      setSelectedFramework(null);
+      setError(err.response?.data?.error || 'Could not connect to the Cloudflare API. Check deployment and D1 initialization.');
     } finally {
       setLoading(false);
     }
@@ -144,68 +73,44 @@ function App() {
 
   const createFramework = async () => {
     try {
-      const newFramework = {
-        name: 'New Framework',
-        description: 'A new agentic framework',
+      const base = {
+        name: 'New Framework', description: 'Build and benchmark an agent pipeline',
         nodes: [
-          { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Input' } },
-          { id: 'output', type: 'output', position: { x: 500, y: 200 }, data: { label: 'Output' } }
-        ],
-        edges: []
+          { id: 'input', type: 'input', position: { x: 120, y: 180 }, data: { label: 'Input' } },
+          { id: 'agent', type: 'agent', position: { x: 350, y: 180 }, data: { label: 'Agent', config: { systemPrompt: 'Be concise and accurate.' } } },
+          { id: 'output', type: 'output', position: { x: 580, y: 180 }, data: { label: 'Output' } }
+        ], edges: [
+          { id: 'e1', source: 'input', target: 'agent' }, { id: 'e2', source: 'agent', target: 'output' }
+        ]
       };
-
-      const response = await axios.post(`${API_URL}/frameworks`, newFramework);
-      const created = { ...newFramework, ...response.data, metrics: { avgLatency: 0, successRate: 0, totalRuns: 0 } };
-      setFrameworks([...frameworks, created]);
+      const response = await axios.post(API_URL + '/frameworks', base);
+      const created = { ...base, ...response.data, metrics: { avgLatency: 0, successRate: 0, totalRuns: 0 } };
+      setFrameworks(prev => [created, ...prev]);
       setSelectedFramework(created);
       setActiveTab('editor');
-    } catch (err) {
-      console.error('Error creating framework:', err);
-      // Demo mode fallback
-      const demoFramework = {
-        id: `demo-${Date.now()}`,
-        name: 'New Framework',
-        description: 'A new agentic framework',
-        nodes: [
-          { id: 'input', type: 'input', position: { x: 100, y: 200 }, data: { label: 'Input' } },
-          { id: 'output', type: 'output', position: { x: 500, y: 200 }, data: { label: 'Output' } }
-        ],
-        edges: [],
-        metrics: { avgLatency: 0, successRate: 0, totalRuns: 0 }
-      };
-      setFrameworks([...frameworks, demoFramework]);
-      setSelectedFramework(demoFramework);
-      setActiveTab('editor');
-    }
+      setError(null);
+    } catch (err) { setError(err.response?.data?.error || 'Unable to create framework.'); }
   };
 
   const deleteFramework = async (id) => {
     try {
-      await axios.delete(`${API_URL}/frameworks/${id}`);
-      setFrameworks(frameworks.filter(f => f.id !== id));
-      if (selectedFramework?.id === id) {
-        setSelectedFramework(null);
-      }
-    } catch (err) {
-      console.error('Error deleting framework:', err);
-      // Demo mode fallback
-      setFrameworks(frameworks.filter(f => f.id !== id));
-      if (selectedFramework?.id === id) {
-        setSelectedFramework(null);
-      }
-    }
+      await axios.delete(API_URL + '/frameworks/' + id);
+      setFrameworks(prev => prev.filter(f => f.id !== id));
+      if (selectedFramework?.id === id) setSelectedFramework(null);
+    } catch (err) { setError(err.response?.data?.error || 'Delete failed.'); }
   };
 
   const updateFramework = async (id, updates) => {
     try {
-      const response = await axios.put(`${API_URL}/frameworks/${id}`, updates);
-      setFrameworks(frameworks.map(f => f.id === id ? { ...f, ...response.data } : f));
-      setSelectedFramework({ ...selectedFramework, ...response.data });
+      const old = frameworks.find(f => f.id === id) || selectedFramework;
+      const payload = { ...old, ...updates };
+      await axios.put(API_URL + '/frameworks/' + id, payload);
+      setFrameworks(prev => prev.map(f => f.id === id ? payload : f));
+      setSelectedFramework(prev => prev?.id === id ? payload : prev);
+      setError(null);
     } catch (err) {
-      console.error('Error updating framework:', err);
-      // Demo mode fallback
-      setFrameworks(frameworks.map(f => f.id === id ? { ...f, ...updates } : f));
-      setSelectedFramework({ ...selectedFramework, ...updates });
+      setError(err.response?.data?.error || 'Save failed; edits have not been persisted.');
+      throw err;
     }
   };
 
@@ -214,27 +119,19 @@ function App() {
     setActiveTab('editor');
   };
 
-  const handleFrameworkGenerated = (framework) => {
-    const newFramework = {
-      ...framework,
-      id: framework.id || `gen-${Date.now()}`,
-      metrics: { avgLatency: 0, successRate: 0, totalRuns: 0 }
-    };
-    setFrameworks([...frameworks, newFramework]);
-    setSelectedFramework(newFramework);
-    setActiveTab('editor');
+  const storeFramework = async (framework) => {
+    try {
+      const { id, metrics, ...payload } = framework;
+      const result = await axios.post(API_URL + '/frameworks', payload);
+      const saved = { ...payload, ...result.data, metrics: { totalRuns: 0, successRate: 0, avgLatency: 0 } };
+      setFrameworks(prev => [saved, ...prev]);
+      setSelectedFramework(saved);
+      setActiveTab('editor');
+      setError(null);
+    } catch (err) { setError(err.response?.data?.error || 'Unable to persist imported/generated framework.'); }
   };
-
-  const handleImportFramework = (framework) => {
-    const newFramework = {
-      ...framework,
-      id: framework.id || `import-${Date.now()}`,
-      metrics: framework.metrics || { avgLatency: 0, successRate: 0, totalRuns: 0 }
-    };
-    setFrameworks([...frameworks, newFramework]);
-    setSelectedFramework(newFramework);
-    setActiveTab('editor');
-  };
+  const handleFrameworkGenerated = storeFramework;
+  const handleImportFramework = storeFramework;
 
   if (loading) {
     return (
@@ -252,10 +149,21 @@ function App() {
       <header className="App-header">
         <h1>AAB</h1>
         <span className="header-divider">|</span>
-        <span className="header-subtitle">Agentic Architecture Platform</span>
+        <span className="header-subtitle">Agentic Architecture Benchmarks <span className="header-pill">Cloudflare Native</span></span>
+        <div className="owner-controls">
+          {ownerToken ? <button type="button" onClick={lock} className="owner-button">Lock workspace</button>
+            : <span className="owner-hint">Private workspace</span>}
+        </div>
         {error && <div className="error-banner">{error}</div>}
       </header>
 
+      {needsAuth && (
+        <form className="access-panel" onSubmit={unlock}>
+          <div><strong>Unlock your workspace</strong><p>Enter the AAB_ADMIN_TOKEN configured as a Cloudflare Worker secret. No tokens are stored on the server or in your repository.</p></div>
+          <input aria-label="Owner token" type="password" value={tokenInput} onChange={e => setTokenInput(e.target.value)} placeholder="Owner access token" required />
+          <button className="btn btn-primary" type="submit">Unlock</button>
+        </form>
+      )}
       <nav className="App-nav">
         <button
           className={activeTab === 'list' ? 'active' : ''}
@@ -269,13 +177,7 @@ function App() {
         >
           Builder
         </button>
-        <button
-          className={activeTab === 'code' ? 'active' : ''}
-          onClick={() => setActiveTab('code')}
-        >
-          Code
-        </button>
-        <button
+<button
           className={activeTab === 'editor' ? 'active' : ''}
           onClick={() => setActiveTab('editor')}
           disabled={!selectedFramework}
@@ -326,13 +228,7 @@ function App() {
             apiUrl={API_URL}
           />
         )}
-        {activeTab === 'code' && (
-          <CustomCodeEditor
-            framework={selectedFramework}
-            onUpdate={updateFramework}
-          />
-        )}
-        {activeTab === 'editor' && selectedFramework && (
+{activeTab === 'editor' && selectedFramework && (
           <FrameworkEditor
             framework={selectedFramework}
             onUpdate={updateFramework}
@@ -365,7 +261,7 @@ function App() {
       </main>
 
       <footer className="App-footer">
-        <p>Powered by Cloudflare Workers • OpenRouter LLMs • ReactFlow</p>
+        <p>Cloudflare Workers · D1 · Workers AI · React Flow · Free-tier architecture</p>
       </footer>
     </div>
   );

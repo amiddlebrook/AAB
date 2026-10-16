@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react';
+import axios from 'axios';
 import App from './App';
-
-test('renders learn react link', () => {
+jest.mock('axios', () => ({ get: jest.fn(), defaults: { headers: { common: {} } } }));
+test('renders empty state from real API response', async () => {
+  axios.get.mockResolvedValue({ data: [] });
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(await screen.findByText('No frameworks yet')).toBeInTheDocument();
 });

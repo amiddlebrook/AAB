@@ -1,174 +1,37 @@
 import { Hono } from 'hono';
-import { v4 as uuidv4 } from 'uuid';
 import type { Env } from '../index';
-import { callOpenRouter } from '../lib/openrouter';
+import { infer, parseFramework } from '../lib/ai';
 
 export const chatRoutes = new Hono<{ Bindings: Env }>();
+const system = 'You are AAB, an expert agent systems architect. Explain design tradeoffs accurately. Prefer acyclic workflows with Input, Agent, Processor and Output nodes. All model execution is native Cloudflare Workers AI, so do not promise external model providers or tools.';
 
-const SYSTEM_PROMPT = `You are the Senior Agentic Systems Architect (SASA) for the AAB platform.
-Your goal is to design world-class, robust, and scalable multi-agent frameworks.
-
-### CORE OPERATING RULES:
-1. **Intellectual Excellence**: Maintain a high standard of reasoning. Never provide generic or "lazy" responses.
-2. **Chain of Thought**: Before generating the JSON, briefly analyze the user's request. Consider edge cases, necessary components, and data flow.
-3. **Structured Output**: You MUST generate valid JSON for the framework when requested.
-
-### ARCHITECTURAL STANDARDS:
-- **Agents**: Use specific models (e.g., 'anthropic/claude-3.5-sonnet', 'openai/gpt-4o') in config.
-- **Tools**: Suggest real tools (e.g., 'web_search', 'code_interpreter', 'retrieval').
-- **Flow**: Ensure logical progression (Input -> Processing -> Output). Use 'router' nodes for conditional logic.
-- **Retry Logic**: Implement loops for robustness where appropriate.
-
-### JSON STRUCTURE:
-{
-  "name": "Framework Name",
-  "description": "Brief technical description",
-  "nodes": [
-    { "id": "node1", "type": "agent", "position": { "x": 100, "y": 100 }, "data": { "label": "Agent Name", "config": { "model": "..." } } }
-  ],
-  "edges": [
-    { "id": "e1", "source": "node1", "target": "node2", "type": "smoothstep" }
-  ]
-}
-
-### NODE TYPES:
-- **input**: Entry point.
-- **output**: Exit point.
-- **agent**: LLM Agent. Config: { "model": "string", "temperature": number, "system_prompt": "string" }
-- **processor**: Code/Transform. Config: { "code": "string" }
-- **router**: Logic Branching.
-- **tool**: External Tool. Config: { "tool": "search" | "calculator" | "api" }
-
-Be creative. Impress the user with your architectural insight.`;
-
-// Chat with the builder agent
-chatRoutes.post('/', async (c) => {
-    const body = await c.req.json();
-    const { messages, generateFramework, model, apiKey } = body;
-
-    if (!messages || !Array.isArray(messages)) {
-        return c.json({ error: 'Messages array required' }, 400);
-    }
-
-    // Determine API Key (Client override -> AAB Secret -> Standard Secret)
-    const activeApiKey = apiKey || c.env.AAB_OPENROUTER_API_KEY || c.env.OPENROUTER_API_KEY;
-
-    // Check for API key
-    if (!activeApiKey) {
-        console.error('Missing API Key');
-        return c.json({ error: 'Missing API Key: Set AAB_OPENROUTER_API_KEY in backend or provide key in frontend settings.' }, 500);
-    }
-
-    // Add system prompt
-    const fullMessages = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...messages
-    ];
-
-    // If user wants to generate a framework, add instruction
-    if (generateFramework) {
-        fullMessages.push({
-            role: 'user',
-            content: 'Please generate the framework JSON structure based on our conversation. Output only the JSON.'
-        });
-    }
-
-    try {
-        const response = await callOpenRouter(
-            fullMessages,
-            activeApiKey,
-            {
-                model: model || 'meta-llama/llama-3.3-70b-instruct:free',
-                temperature: 0.7,
-                maxTokens: 4096
-            }
-        );
-
-        // Try to extract framework JSON if present
-        let framework = null;
-        if (generateFramework || response.content.includes('"nodes"')) {
-            try {
-                const jsonMatch = response.content.match(/\{[\s\S]*"nodes"[\s\S]*"edges"[\s\S]*\}/);
-                if (jsonMatch) {
-                    framework = JSON.parse(jsonMatch[0]);
-                }
-            } catch (e) {
-                // Not valid JSON, that's ok
-            }
-        }
-
-        return c.json({
-            id: uuidv4(),
-            role: 'assistant',
-            content: response.content,
-            framework,
-            usage: response.usage
-        });
-    } catch (error: any) {
-        return c.json({ error: error.message }, 500);
-    }
+chatRoutes.post('/', async c => {
+  const body = await c.req.json().catch(() => ({})) as any;
+  if (!Array.isArray(body.messages) || body.messages.length < 1 || body.messages.length > 20 ||
+      body.messages.some((m: any) => typeof m.content !== 'string' || m.content.length > 4000)) {
+    return c.json({ error: 'Provide 1-20 short messages.' }, 400);
+  }
+  try {
+    const messages = body.messages.filter((m: any) => ['user', 'assistant'].includes(m.role))
+      .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+    const result = await infer(c.env, [{ role: 'system', content: system }, ...messages], 1024);
+    return c.json({ id: crypto.randomUUID(), role: 'assistant', content: result.content,
+      framework: null, usage: { totalTokens: result.tokens, cost: 0 }, model: result.model });
+  } catch (e: any) {
+    return c.json({ error: e?.message || 'Workers AI unavailable' }, 502);
+  }
 });
 
-// Generate framework from description
-chatRoutes.post('/generate', async (c) => {
-    const body = await c.req.json();
-    const { description } = body;
-
-    if (!description) {
-        return c.json({ error: 'Description required' }, 400);
-    }
-
-    // Determine API Key (Client override -> AAB Secret -> Standard Secret)
-    const activeApiKey = body.apiKey || c.env.AAB_OPENROUTER_API_KEY || c.env.OPENROUTER_API_KEY;
-
-    // Check for API key
-    if (!activeApiKey) {
-        console.error('Missing API Key');
-        return c.json({ error: 'Missing API Key: Set AAB_OPENROUTER_API_KEY (or OPENROUTER_API_KEY) in backend.' }, 500);
-    }
-
-    const prompt = `Generate a framework for the following description:
-
-"${description}"
-
-Respond with ONLY a valid JSON object containing:
-{
-  "name": "Framework name",
-  "description": "Brief description",
-  "nodes": [...],
-  "edges": [...]
-}
-
-Make sure positions are spread out (x: 100-700, y: 100-400).
-Use appropriate node types and connect them logically.`;
-
-    try {
-        const response = await callOpenRouter(
-            [
-                { role: 'system', content: SYSTEM_PROMPT },
-                { role: 'user', content: prompt }
-            ],
-            activeApiKey,
-            {
-                model: body.model || 'meta-llama/llama-3.3-70b-instruct',
-                temperature: 0.5,
-                maxTokens: 2048
-            }
-        );
-
-        // Extract JSON
-        const jsonMatch = response.content.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-            return c.json({ error: 'Failed to generate valid framework' }, 500);
-        }
-
-        const framework = JSON.parse(jsonMatch[0]);
-
-        return c.json({
-            framework,
-            usage: response.usage
-        });
-    } catch (error: any) {
-        return c.json({ error: error.message }, 500);
-    }
+chatRoutes.post('/generate', async c => {
+  const body = await c.req.json().catch(() => ({})) as any;
+  if (typeof body.description !== 'string' || !body.description.trim() || body.description.length > 4000)
+    return c.json({ error: 'A description of up to 4000 characters is required.' }, 400);
+  try {
+    const prompt = 'Return ONLY valid JSON for an acyclic agent architecture matching this request: ' +
+      body.description + '\nFormat: {"name":"...","description":"...","nodes":[{"id":"in","type":"input","position":{"x":100,"y":180},"data":{"label":"Input"}},{"id":"agent","type":"agent","position":{"x":330,"y":180},"data":{"label":"Agent","config":{"systemPrompt":"..."} }},{"id":"out","type":"output","position":{"x":560,"y":180},"data":{"label":"Output"}}],"edges":[{"id":"e1","source":"in","target":"agent"},{"id":"e2","source":"agent","target":"out"}]}. Use supported input, output, agent, processor, merge, parallel, tool, router nodes. Only use native Cloudflare AI for agent nodes.';
+    const result = await infer(c.env, [{ role: 'system', content: system }, { role: 'user', content: prompt }], 1800);
+    return c.json({ framework: parseFramework(result.content), usage: { totalTokens: result.tokens, cost: 0 } });
+  } catch (e: any) {
+    return c.json({ error: e?.message || 'Framework generation failed' }, 502);
+  }
 });

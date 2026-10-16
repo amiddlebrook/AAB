@@ -1,5 +1,4 @@
-# AAB Environment Variables
-# Copy this to .dev.vars and add your real API key
-
-OPENROUTER_API_KEY=your_openrouter_api_key_here
+# Copy to .dev.vars for Wrangler development.
 ENVIRONMENT=development
+# Production requires this value, set using 'npx wrangler secret put AAB_ADMIN_TOKEN'.
+# AAB_ADMIN_TOKEN=choose-a-long-random-secret
