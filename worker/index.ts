@@ -47,7 +47,10 @@ app.route('/api/frameworks', frameworkRoutes);
 app.route('/api/tests', testRoutes);
 app.route('/api/chat', chatRoutes);
 app.route('/api/node-types', nodeTypeRoutes);
-app.notFound(c => c.json({ error: 'API endpoint not found' }, 404));
+app.notFound(async c => {
+  if (c.req.path.startsWith('/api/')) return c.json({ error: 'API endpoint not found' }, 404);
+  return c.env.ASSETS.fetch(c.req.raw);
+});
 app.onError((err, c) => {
   console.error('AAB request failed', err);
   return c.json({ error: 'Request failed. Check the Worker logs.' }, 500);
