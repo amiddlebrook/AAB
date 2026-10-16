@@ -2,7 +2,7 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import './ABTesting.css';
 
-function ABTesting({ frameworks }) {
+function ABTesting({ frameworks, apiUrl = '/api', onRunComplete }) {
     const [frameworkA, setFrameworkA] = useState(null);
     const [frameworkB, setFrameworkB] = useState(null);
     const [testInput, setTestInput] = useState('Sample input for A/B comparison test');
@@ -22,8 +22,8 @@ function ABTesting({ frameworks }) {
         try {
             for (let i = 0; i < numRuns; i++) {
                 const [a, b] = await Promise.all([
-                    axios.post('/api/tests/' + frameworkA.id + '/run', { testInput }),
-                    axios.post('/api/tests/' + frameworkB.id + '/run', { testInput })
+                    axios.post(apiUrl + '/tests/' + frameworkA.id + '/run', { testInput }),
+                    axios.post(apiUrl + '/tests/' + frameworkB.id + '/run', { testInput })
                 ]);
                 for (const [response, bucket] of [[a, resultsA], [b, resultsB]]) {
                     const r = response.data;
@@ -39,6 +39,7 @@ function ABTesting({ frameworks }) {
             };
             setResults(testResult);
             setRunHistory(prev => [testResult, ...prev.slice(0, 9)]);
+            onRunComplete?.();
         } catch (error) {
             setRunError(error.response?.data?.error || error.message);
         } finally { setIsRunning(false); }
