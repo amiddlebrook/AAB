@@ -10,12 +10,14 @@ function ABTesting({ frameworks }) {
     const [isRunning, setIsRunning] = useState(false);
     const [results, setResults] = useState(null);
     const [runHistory, setRunHistory] = useState([]);
+    const [runError, setRunError] = useState('');
 
     // Execute both saved architectures against the same inputs on the actual Worker.
     const runABTest = useCallback(async () => {
         if (!frameworkA || !frameworkB) return;
         setIsRunning(true);
         setResults(null);
+        setRunError('');
         const resultsA = [], resultsB = [];
         try {
             for (let i = 0; i < numRuns; i++) {
@@ -38,7 +40,7 @@ function ABTesting({ frameworks }) {
             setResults(testResult);
             setRunHistory(prev => [testResult, ...prev.slice(0, 9)]);
         } catch (error) {
-            setResults({ error: error.response?.data?.error || error.message });
+            setRunError(error.response?.data?.error || error.message);
         } finally { setIsRunning(false); }
     }, [frameworkA, frameworkB, testInput, numRuns]);
 
@@ -94,6 +96,8 @@ function ABTesting({ frameworks }) {
                 <h2>⚖️ A/B Testing</h2>
                 <p>Compare framework performance side-by-side</p>
             </div>
+
+            {runError && <p role="alert" className="error-banner">{runError}</p>}
 
             <div className="ab-setup">
                 <div className="framework-select">
