@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import './ABTesting.css';
 
 function ABTesting({ frameworks }) {
@@ -13,7 +13,7 @@ function ABTesting({ frameworks }) {
     const [runError, setRunError] = useState('');
 
     // Execute both saved architectures against the same inputs on the actual Worker.
-    const runABTest = useCallback(async () => {
+    const runABTest = async () => {
         if (!frameworkA || !frameworkB) return;
         setIsRunning(true);
         setResults(null);
@@ -42,7 +42,7 @@ function ABTesting({ frameworks }) {
         } catch (error) {
             setRunError(error.response?.data?.error || error.message);
         } finally { setIsRunning(false); }
-    }, [frameworkA, frameworkB, testInput, numRuns]);
+    };
 
     // Calculate metrics from results
     const calculateMetrics = (results) => {
