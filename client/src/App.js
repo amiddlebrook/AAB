@@ -55,13 +55,9 @@ function App() {
       setError(null);
       const response = await axios.get(`${API_URL}/frameworks`);
       setFrameworks(response.data);
-      // Auto-select first framework
-      if (response.data.length > 0) {
-        setSelectedFramework(response.data[0]);
-      }
+      setSelectedFramework(prev => response.data.find(f => f.id === prev?.id) || response.data[0] || null);
     } catch (err) {
       console.error('Error loading frameworks:', err);
-      setError('Unable to load saved frameworks.');
       setNeedsAuth(err.response?.status === 401 || err.response?.status === 503);
       setFrameworks([]);
       setSelectedFramework(null);
@@ -69,6 +65,14 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshMetrics = async () => {
+    try {
+      const response = await axios.get(API_URL + '/frameworks');
+      setFrameworks(response.data);
+      setSelectedFramework(prev => response.data.find(f => f.id === prev?.id) || prev);
+    } catch (err) { setError(err.response?.data?.error || 'Unable to refresh metrics.'); }
   };
 
   const createFramework = async () => {
@@ -230,12 +234,15 @@ function App() {
         )}
 {activeTab === 'editor' && selectedFramework && (
           <FrameworkEditor
+            key={selectedFramework.id}
             framework={selectedFramework}
             onUpdate={updateFramework}
           />
         )}
         {activeTab === 'test' && selectedFramework && (
           <TestRunner
+            key={selectedFramework.id}
+            onRunComplete={refreshMetrics}
             framework={selectedFramework}
             apiUrl={API_URL}
             onUpdate={updateFramework}
@@ -248,6 +255,8 @@ function App() {
         )}
         {activeTab === 'abtest' && (
           <ABTesting
+            apiUrl={API_URL}
+            onRunComplete={refreshMetrics}
             frameworks={frameworks}
           />
         )}
